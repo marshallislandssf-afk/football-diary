@@ -1,0 +1,278 @@
+import { Match } from '../lib/types';
+
+export const INITIAL_MATCHES: Match[] = [
+  // 2026
+  {
+    id: 'wisla-2026',
+    date: '2026-05-08',
+    homeTeam: { name: 'Wisła Kraków' },
+    awayTeam: { name: 'Chrobry Głogów' },
+    competition: { name: 'I Liga', country: 'Poland' },
+    venue: 'Stadion Miejski, Kraków',
+  },
+  {
+    id: 'wieczysta-2026',
+    date: '2026-05-09',
+    homeTeam: { name: 'Wieczysta Kraków' },
+    awayTeam: { name: 'Miedź Legnica' },
+    competition: { name: 'II Liga', country: 'Poland' },
+    venue: 'Kraków',
+  },
+  {
+    id: 'cracovia-2026',
+    date: '2026-05-11',
+    homeTeam: { name: 'Cracovia' },
+    awayTeam: { name: 'Radomiak Radom' },
+    competition: { name: 'Ekstraklasa', country: 'Poland' },
+    venue: 'Stadion Cracovii, Kraków',
+  },
+  // 2025
+  {
+    id: 'wales-2025',
+    date: '2025-11-18',
+    homeTeam: { name: 'Wales' },
+    awayTeam: { name: 'North Macedonia' },
+    competition: { name: 'UEFA Nations League', country: 'International' },
+    venue: 'Cardiff City Stadium',
+  },
+  {
+    id: 'turks-caicos-2025',
+    date: '2025-08-13',
+    homeTeam: { name: 'Turks and Caicos' },
+    awayTeam: { name: 'US Virgin Islands' },
+    competition: { name: 'Outrigger Challenge Cup', country: 'International' },
+  },
+  {
+    id: 'flamengo-2025',
+    date: '2025-05-21',
+    homeTeam: { name: 'Flamengo' },
+    awayTeam: { name: 'Botafogo PB' },
+    competition: { name: 'Copa do Brasil', country: 'Brazil' },
+    venue: 'Rio de Janeiro',
+  },
+  {
+    id: 'vasco-2025',
+    date: '2025-05-18',
+    homeTeam: { name: 'Vasco da Gama' },
+    awayTeam: { name: 'Fortaleza' },
+    competition: { name: 'Brasileirão Série A', country: 'Brazil' },
+    venue: 'São Januário, Rio de Janeiro',
+  },
+  // 2024 - none listed
+  // 2023
+  {
+    id: 'dinamo-2023',
+    date: '2023-10-08',
+    homeTeam: { name: 'Dinamo București' },
+    awayTeam: { name: 'CFR Cluj' },
+    competition: { name: 'SuperLiga', country: 'Romania' },
+    venue: 'Stadionul Dinamo, Bucharest',
+  },
+  {
+    id: 'marseille-2023',
+    date: '2023-08-26',
+    homeTeam: { name: 'Marseille' },
+    awayTeam: { name: 'Brest' },
+    competition: { name: 'Ligue 1', country: 'France' },
+    venue: 'Stade Vélodrome, Marseille',
+  },
+  {
+    id: 'psg-2023',
+    date: '2023-03-04',
+    homeTeam: { name: 'Paris Saint-Germain' },
+    awayTeam: { name: 'Nantes' },
+    competition: { name: 'Ligue 1', country: 'France' },
+    venue: 'Parc des Princes, Paris',
+  },
+  // 2022
+  {
+    id: 'wc-final-2022',
+    date: '2022-12-18',
+    homeTeam: { name: 'Argentina' },
+    awayTeam: { name: 'France' },
+    homeScore: 3,
+    awayScore: 3,
+    competition: { name: 'FIFA World Cup Final', country: 'International' },
+    venue: 'Lusail Stadium, Qatar',
+    annotations: [
+      {
+        id: 'ann-wc-1',
+        type: 'special',
+        text: 'World Cup Final — Argentina win on penalties. Messi lifts the trophy. One of the greatest matches in football history.',
+        emoji: '🏆',
+      },
+      {
+        id: 'ann-wc-2',
+        type: 'milestone',
+        text: "Lionel Messi's first World Cup winner's medal",
+        emoji: '🐐',
+      },
+    ],
+  },
+  {
+    id: 'fluminense-2022',
+    date: '2022-04-27',
+    homeTeam: { name: 'Fluminense' },
+    awayTeam: { name: 'Union Santa Fe' },
+    competition: { name: 'Copa Libertadores', country: 'South America' },
+    venue: 'Maracanã, Rio de Janeiro',
+  },
+  // 2021
+  {
+    id: 'euro-final-2021',
+    date: '2021-07-11',
+    homeTeam: { name: 'England' },
+    awayTeam: { name: 'Italy' },
+    homeScore: 1,
+    awayScore: 1,
+    competition: { name: 'UEFA Euro 2020 Final', country: 'International' },
+    venue: 'Wembley Stadium, London',
+    annotations: [
+      {
+        id: 'ann-euro-1',
+        type: 'special',
+        text: "England's first major tournament final since 1966. Italy win on penalties.",
+        emoji: '🏟️',
+      },
+    ],
+  },
+  {
+    id: 'eng-scot-2021',
+    date: '2021-06-18',
+    homeTeam: { name: 'England' },
+    awayTeam: { name: 'Scotland' },
+    homeScore: 0,
+    awayScore: 0,
+    competition: { name: 'UEFA Euro 2020 Group Stage', country: 'International' },
+    venue: 'Wembley Stadium, London',
+  },
+  {
+    id: 'bala-larne-2021',
+    date: '2021-07-08',
+    homeTeam: { name: 'Bala Town' },
+    awayTeam: { name: 'Larne' },
+    competition: { name: 'UEFA Europa Conference League Qualifying', country: 'International' },
+  },
+  // 2019
+  {
+    id: 'barca-eibar-2019',
+    date: '2019-01-13',
+    homeTeam: { name: 'Barcelona' },
+    awayTeam: { name: 'Eibar' },
+    competition: { name: 'La Liga', country: 'Spain' },
+    venue: 'Camp Nou, Barcelona',
+  },
+  {
+    id: 'sants-badalona-2019',
+    date: '2019-01-13',
+    homeTeam: { name: 'UE Sants' },
+    awayTeam: { name: 'CF Badalona' },
+    competition: { name: 'Tercera Federación Group 5', country: 'Spain' },
+    isManual: true,
+  },
+  // 2018
+  {
+    id: 'wc-croatia-2018',
+    date: '2018-06-11',
+    homeTeam: { name: 'Croatia' },
+    awayTeam: { name: 'England' },
+    homeScore: 2,
+    awayScore: 1,
+    competition: { name: 'FIFA World Cup Group Stage', country: 'International' },
+    venue: 'Kaliningrad Stadium, Russia',
+  },
+  // 2017
+  {
+    id: 'eng-bra-2017',
+    date: '2017-11-14',
+    homeTeam: { name: 'England' },
+    awayTeam: { name: 'Brazil' },
+    competition: { name: 'International Friendly', country: 'International' },
+    venue: 'Wembley Stadium, London',
+  },
+  // 2016
+  {
+    id: 'euro-ukr-pol-2016',
+    date: '2016-06-21',
+    homeTeam: { name: 'Ukraine' },
+    awayTeam: { name: 'Poland' },
+    competition: { name: 'UEFA Euro 2016 Group Stage', country: 'International' },
+    venue: 'Stade Vélodrome, Marseille',
+  },
+  {
+    id: 'liverpool-exeter-2016',
+    date: '2016-01-20',
+    homeTeam: { name: 'Liverpool' },
+    awayTeam: { name: 'Exeter City' },
+    competition: { name: 'FA Cup Replay', country: 'England' },
+    venue: 'Anfield, Liverpool',
+  },
+  {
+    id: 'exeter-liverpool-2016',
+    date: '2016-01-08',
+    homeTeam: { name: 'Exeter City' },
+    awayTeam: { name: 'Liverpool' },
+    competition: { name: 'FA Cup 3rd Round', country: 'England' },
+    venue: 'St James Park, Exeter',
+    annotations: [
+      {
+        id: 'ann-exeter-1',
+        type: 'special',
+        text: 'Exeter hold Premier League Liverpool to a draw at home — forcing a replay at Anfield',
+        emoji: '⚡',
+      },
+    ],
+  },
+  // 2015
+  {
+    id: 'arsenal-2015',
+    date: '2015-08-24',
+    homeTeam: { name: 'Arsenal' },
+    awayTeam: { name: 'Liverpool' },
+    competition: { name: 'Premier League', country: 'England' },
+    venue: 'Emirates Stadium, London',
+  },
+  // 2025 - Exeter FA Cup
+  {
+    id: 'exeter-nfst-2025',
+    date: '2025-02-11',
+    homeTeam: { name: 'Exeter City' },
+    awayTeam: { name: 'Nottingham Forest' },
+    competition: { name: 'FA Cup', country: 'England' },
+    venue: 'St James Park, Exeter',
+    annotations: [
+      {
+        id: 'ann-ex-fa',
+        type: 'special',
+        text: 'League One Exeter host Premier League Nottingham Forest in a giant-killing FA Cup tie',
+        emoji: '🏆',
+      },
+    ],
+  },
+  // 2013
+  {
+    id: 'cardiff-spurs-2013',
+    date: '2013-09-22',
+    homeTeam: { name: 'Cardiff City' },
+    awayTeam: { name: 'Tottenham Hotspur' },
+    competition: { name: 'Premier League', country: 'England' },
+    venue: 'Cardiff City Stadium',
+    annotations: [
+      {
+        id: 'ann-cardiff-1',
+        type: 'promotion',
+        text: "Cardiff City's first Premier League season after promotion",
+        emoji: '📈',
+      },
+    ],
+  },
+  // 2011
+  {
+    id: 'exeter-liverpool-2011',
+    date: '2011-08-24',
+    homeTeam: { name: 'Exeter City' },
+    awayTeam: { name: 'Liverpool' },
+    competition: { name: 'League Cup', country: 'England' },
+    venue: 'St James Park, Exeter',
+  },
+];
