@@ -5,21 +5,26 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  // Search specifically for Wales national team
-  const r1 = await fetch('https://v3.football.api-sports.io/teams?search=Wales&type=national', { headers });
+  const results: any = {};
+
+  const r1 = await fetch('https://v3.football.api-sports.io/teams?search=England', { headers });
   const d1 = await r1.json();
+  results.englandTeams = d1.response?.slice(0,5).map((t:any) => ({ id: t.team.id, name: t.team.name, country: t.team.country, national: t.team.national }));
 
-  // Also try by country
-  const r2 = await fetch('https://v3.football.api-sports.io/teams?country=Wales&type=national', { headers });
+  const r2 = await fetch('https://v3.football.api-sports.io/fixtures?date=2021-07-11', { headers });
   const d2 = await r2.json();
+  results.euroFinalCount = d2.results;
+  results.euroFinalSample = d2.response?.slice(0,5).map((f:any) => ({ home: f.teams.home.name, away: f.teams.away.name, league: f.league.name }));
 
-  // Try the World Cup 2026 qualifier league
-  const r3 = await fetch('https://v3.football.api-sports.io/leagues?type=cup&search=World+Cup', { headers });
+  const r3 = await fetch('https://v3.football.api-sports.io/fixtures?date=2022-12-18', { headers });
   const d3 = await r3.json();
+  results.wcFinalCount = d3.results;
+  results.wcFinalSample = d3.response?.slice(0,5).map((f:any) => ({ home: f.teams.home.name, away: f.teams.away.name, league: f.league.name }));
 
-  return NextResponse.json({
-    walesBySearch: d1.response?.slice(0,5).map((t:any) => ({ id: t.team.id, name: t.team.name, country: t.team.country, national: t.team.national })),
-    walesByCountry: d2.response?.slice(0,5).map((t:any) => ({ id: t.team.id, name: t.team.name, national: t.team.national })),
-    worldCupLeagues: d3.response?.slice(0,8).map((l:any) => ({ id: l.league.id, name: l.league.name, type: l.league.type, seasons: l.seasons?.slice(-1).map((s:any) => s.year) })),
-  });
+  const r4 = await fetch('https://v3.football.api-sports.io/fixtures?date=2019-01-13', { headers });
+  const d4 = await r4.json();
+  results.barcaCount = d4.results;
+  results.barcaSample = d4.response?.slice(0,5).map((f:any) => ({ home: f.teams.home.name, away: f.teams.away.name, league: f.league.name }));
+
+  return NextResponse.json(results);
 }
