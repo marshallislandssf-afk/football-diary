@@ -59,22 +59,23 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const date = searchParams.get('date');
-  const homeApiId = searchParams.get('homeApiId');
-  const awayApiId = searchParams.get('awayApiId');
+  const home = searchParams.get('home');
+  const away = searchParams.get('away');
   const competition = searchParams.get('competition') || '';
   const leagueIdParam = searchParams.get('leagueId');
+  const homeApiId = searchParams.get('homeApiId');
+  const awayApiId = searchParams.get('awayApiId');
 
   if (!date) return NextResponse.json({ error: 'Missing date' }, { status: 400 });
 
   const headers = { 'x-apisports-key': apiKey };
-  // Use explicitly passed leagueId (from user-selected competition) or look up from name
   const leagueId = leagueIdParam ? parseInt(leagueIdParam) : (LEAGUE_MAP[competition]?.id ?? null);
   const season = getSeason(competition, date);
 
   try {
     let fixtures: any[] = [];
-    
-// Strategy 0: use explicit team ID if provided — most reliable
+
+    // Strategy 0: use explicit team ID if provided — most reliable
     const teamApiId = homeApiId || awayApiId;
     if (teamApiId) {
       for (const s of [season, season - 1, season + 1]) {
@@ -86,8 +87,9 @@ export async function GET(req: NextRequest) {
         if (data.response?.length) { fixtures = data.response; break; }
       }
     }
+
     // Strategy 1: known league ID + season + date
-    if (leagueId) {
+    if (!fixtures.length && leagueId) {
       for (const s of [season, season - 1, season + 1]) {
         const res = await fetch(
           `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=${s}&date=${date}`,
@@ -105,14 +107,24 @@ export async function GET(req: NextRequest) {
         { headers }
       );
       const teamData = await teamRes.json();
-      for (const t of (teamData.response || []).slice(0, 3)) {
+      for (const t of (teamData.response || []).slice(0, 5)) {
         for (const s of [season, season - 1, season + 1]) {
           const res = await fetch(
             `https://v3.football.api-sports.io/fixtures?team=${t.team.id}&season=${s}&date=${date}`,
             { headers }
           );
           const data = await res.json();
-          if (data.response?.length) { fixtures = data.response; break; }
+          if (!data.response?.length) continue;
+          const awayLower = (away || '').toLowerCase();
+          const matched = data.response.filter((f: any) => {
+            const fa = (f.teams?.away?.name || '').toLowerCase();
+            const fh = (f.teams?.home?.name || '').toLowerCase();
+            return fa.includes(awayLower.split(' ')[0]) ||
+                   awayLower.includes(fa.split(' ')[0]) ||
+                   fh.includes(awayLower.split(' ')[0]) ||
+                   awayLower.includes(fh.split(' ')[0]);
+          });
+          if (matched.length) { fixtures = matched; break; }
         }
         if (fixtures.length) break;
       }
@@ -120,26 +132,24 @@ export async function GET(req: NextRequest) {
 
     if (!fixtures.length) return NextResponse.json({ fixtures: [] });
 
-    // Filter by team names — try strict match first, fall back to loose
+    // Filter by team names — strict first, then loose
     if (home && away) {
       const h = home.toLowerCase();
       const a = away.toLowerCase();
 
-      // Strict: both team names must match substantially
       const strict = fixtures.filter((f: any) => {
         const fh = (f.teams?.home?.name || '').toLowerCase();
         const fa = (f.teams?.away?.name || '').toLowerCase();
         const homeMatch = fh.includes(h) || h.includes(fh) ||
-          (h.split(' ').filter((w:string) => w.length > 3).every((w:string) => fh.includes(w)));
+          h.split(' ').filter((w: string) => w.length > 3).every((w: string) => fh.includes(w));
         const awayMatch = fa.includes(a) || a.includes(fa) ||
-          (a.split(' ').filter((w:string) => w.length > 3).every((w:string) => fa.includes(w)));
+          a.split(' ').filter((w: string) => w.length > 3).every((w: string) => fa.includes(w));
         return homeMatch && awayMatch;
       });
 
       if (strict.length) {
         fixtures = strict;
       } else {
-        // Loose fallback: first word only
         const loose = fixtures.filter((f: any) => {
           const fh = (f.teams?.home?.name || '').toLowerCase();
           const fa = (f.teams?.away?.name || '').toLowerCase();
