@@ -32,7 +32,7 @@ export const INITIAL_MATCHES: Match[] = [
     date: '2025-11-18',
     homeTeam: { name: 'Wales' },
     awayTeam: { name: 'North Macedonia' },
-    competition: { name: 'UEFA Nations League', country: 'International' },
+    competition: { name: 'WC Qualification Europe', country: 'International' },
     venue: 'Cardiff City Stadium',
   },
   {
@@ -180,6 +180,12 @@ export const INITIAL_MATCHES: Match[] = [
     awayScore: 1,
     competition: { name: 'FIFA World Cup Group Stage', country: 'International' },
     venue: 'Kaliningrad Stadium, Russia',
+     annotations: [
+      {
+        id: 'ann-croatia',
+        type: 'special',
+        text: "World Cup Semi-Final — Croatia beat England in extra time.",
+        emoji: '💔',
   },
   // 2017
   {
