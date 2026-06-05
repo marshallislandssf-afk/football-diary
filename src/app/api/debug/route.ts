@@ -20,10 +20,13 @@ export async function GET() {
     f.teams?.away?.name?.toLowerCase().includes('north')
   );
 
-  // Also show all unique leagues on that date
-  const leagues = [...new Map(d1.response?.map((f: any) => 
-    [f.league.id, { id: f.league.id, name: f.league.name }]
-  )).values()];
+ // Also show all unique leagues on that date
+  const seen = new Set();
+  const leagues = (d1.response || []).filter((f: any) => {
+    if (seen.has(f.league.id)) return false;
+    seen.add(f.league.id);
+    return true;
+  }).map((f: any) => ({ id: f.league.id, name: f.league.name }));
 
   return NextResponse.json({
     northMacedoniaFixtures: northMac?.map((f: any) => ({
