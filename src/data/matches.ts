@@ -252,4 +252,32 @@ export const INITIAL_MATCHES: Match[] = [
     id: 'arsenal-2015',
     date: '2015-08-24',
     homeTeam: { name: 'Arsenal' },
-    awayTeam: { name:
+    awayTeam: { name: 'Liverpool' },
+    competition: { name: 'Premier League', country: 'England', leagueId: 39 },
+    venue: 'Emirates Stadium, London',
+  },
+  {
+    id: 'cardiff-spurs-2013',
+    date: '2013-09-22',
+    homeTeam: { name: 'Cardiff City' },
+    awayTeam: { name: 'Tottenham Hotspur' },
+    competition: { name: 'Premier League', country: 'England', leagueId: 39 },
+    venue: 'Cardiff City Stadium',
+    annotations: [
+      {
+        id: 'ann-cardiff-1',
+        type: 'promotion',
+        text: "Cardiff City's first Premier League season after promotion",
+        emoji: '📈',
+      },
+    ],
+  },
+  {
+    id: 'exeter-liverpool-2011',
+    date: '2011-08-24',
+    homeTeam: { name: 'Exeter City' },
+    awayTeam: { name: 'Liverpool' },
+    competition: { name: 'League Cup', country: 'England', leagueId: 48 },
+    venue: 'St James Park, Exeter',
+  },
+];
