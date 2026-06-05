@@ -5,22 +5,19 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  // Fetch events for the World Cup Final (fixture ID 979139 from earlier debug)
-  const res = await fetch(
-    'https://v3.football.api-sports.io/fixtures/events?fixture=979139',
+  // Get all WC Qual Europe fixtures on that date
+  const r1 = await fetch(
+    'https://v3.football.api-sports.io/fixtures?league=32&season=2025&date=2025-11-18',
     { headers }
   );
-  const data = await res.json();
-
-  const subs = data.response?.filter((e: any) => e.type === 'subst');
+  const d1 = await r1.json();
 
   return NextResponse.json({
-    totalEvents: data.results,
-    substitutions: subs?.map((e: any) => ({
-      team: e.team.name,
-      playerOn: e.assist?.name,
-      playerOff: e.player?.name,
-      minute: e.time?.elapsed,
+    total: d1.results,
+    allFixtures: d1.response?.map((f: any) => ({
+      id: f.fixture.id,
+      home: f.teams.home.name,
+      away: f.teams.away.name,
     }))
   });
 }
