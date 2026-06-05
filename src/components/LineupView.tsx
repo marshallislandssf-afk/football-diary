@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Match, Player } from '@/lib/types';
-import { fetchLineup, searchFixtures } from '@/lib/api-sports';
+import { searchFixtures, fetchLineup } from '@/lib/api-sports';
 import { RefreshCw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -12,63 +12,81 @@ interface Props {
 }
 
 function PlayerRow({ player }: { player: Player }) {
+  const isUnused = player.unusedSub;
   return (
-    <div className="flex items-center gap-2 py-1.5 border-b border-[#21262d] last:border-0">
+    <div className={clsx(
+      'flex items-center gap-2 py-1.5 border-b border-[#21262d] last:border-0',
+      isUnused && 'opacity-40'
+    )}>
       {player.number !== undefined && (
-        <span className="w-6 text-center text-xs font-mono text-[#8b949e]">
-          {player.number}
-        </span>
+        <span className="w-6 text-center text-xs font-mono text-[#8b949e]">{player.number}</span>
       )}
-      <span className="flex-1 text-sm text-[#e6edf3]">{player.name}</span>
-      {player.position && (
-        <span
-          className={clsx(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
-            player.position === 'SUB'
-              ? 'bg-[#30363d] text-[#8b949e]'
-              : player.position === 'G'
-              ? 'bg-[#e3b341]/20 text-[#e3b341]'
-              : player.position === 'D'
-              ? 'bg-[#58a6ff]/20 text-[#58a6ff]'
-              : player.position === 'M'
-              ? 'bg-[#3fb950]/20 text-[#3fb950]'
-              : 'bg-[#f85149]/20 text-[#f85149]'
-          )}
-        >
+      <span className={clsx('flex-1 text-sm', isUnused ? 'text-[#8b949e]' : 'text-[#e6edf3]')}>
+        {player.name}
+      </span>
+      {/* Sub on badge with minute */}
+      {player.cameOn && player.cameOnMinute !== undefined && (
+        <span className="text-[10px] text-[#3fb950] font-mono">↑{player.cameOnMinute}'</span>
+      )}
+      {/* Went off badge with minute */}
+      {player.wentOff && player.wentOffMinute !== undefined && (
+        <span className="text-[10px] text-[#f85149] font-mono">↓{player.wentOffMinute}'</span>
+      )}
+      {player.position && !player.unusedSub && (
+        <span className={clsx(
+          'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
+          player.position === 'SUB' ? 'bg-[#30363d] text-[#8b949e]'
+          : player.position === 'G' ? 'bg-[#e3b341]/20 text-[#e3b341]'
+          : player.position === 'D' ? 'bg-[#58a6ff]/20 text-[#58a6ff]'
+          : player.position === 'M' ? 'bg-[#3fb950]/20 text-[#3fb950]'
+          : 'bg-[#f85149]/20 text-[#f85149]'
+        )}>
           {player.position}
         </span>
+      )}
+      {player.unusedSub && (
+        <span className="text-[10px] text-[#484f58] italic">unused</span>
       )}
     </div>
   );
 }
 
 function TeamLineup({ name, players }: { name: string; players: Player[] }) {
-  const starters = players.filter((p) => p.position !== 'SUB');
-  const subs = players.filter((p) => p.position === 'SUB');
-  const [showSubs, setShowSubs] = useState(false);
+  const starters = players.filter((p) => p.isStarter);
+  const activeSubs = players.filter((p) => !p.isStarter && p.cameOn);
+  const unusedSubs = players.filter((p) => !p.isStarter && p.unusedSub);
+  const [showUnused, setShowUnused] = useState(false);
 
   return (
     <div className="flex-1 min-w-0">
-      <h4 className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2">
-        {name}
-      </h4>
+      <h4 className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2">{name}</h4>
+
+      {/* Starters */}
       <div>
-        {starters.map((p, i) => (
-          <PlayerRow key={p.id || `${p.name}-${i}`} player={p} />
-        ))}
+        {starters.map((p, i) => <PlayerRow key={p.id || `${p.name}-${i}`} player={p} />)}
       </div>
-      {subs.length > 0 && (
+
+      {/* Active subs */}
+      {activeSubs.length > 0 && (
+        <div className="mt-2">
+          <div className="text-[10px] text-[#484f58] uppercase tracking-wider mb-1">Substitutes used</div>
+          {activeSubs
+            .sort((a, b) => (a.cameOnMinute || 0) - (b.cameOnMinute || 0))
+            .map((p, i) => <PlayerRow key={p.id || `${p.name}-sub-${i}`} player={p} />)}
+        </div>
+      )}
+
+      {/* Unused subs — collapsed by default */}
+      {unusedSubs.length > 0 && (
         <div className="mt-2">
           <button
-            className="flex items-center gap-1 text-xs text-[#8b949e] hover:text-[#e6edf3] mb-1"
-            onClick={() => setShowSubs((v) => !v)}
+            className="flex items-center gap-1 text-xs text-[#484f58] hover:text-[#8b949e] mb-1"
+            onClick={() => setShowUnused(v => !v)}
           >
-            {showSubs ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            {subs.length} substitutes
+            {showUnused ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            {unusedSubs.length} unused subs
           </button>
-          {showSubs && subs.map((p, i) => (
-            <PlayerRow key={p.id || `${p.name}-sub-${i}`} player={p} />
-          ))}
+          {showUnused && unusedSubs.map((p, i) => <PlayerRow key={p.id || `${p.name}-unused-${i}`} player={p} />)}
         </div>
       )}
     </div>
@@ -80,9 +98,7 @@ export function LineupView({ match, onUpdate }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
 
-  const hasLineup = match.lineup && (
-    match.lineup.home.length > 0 || match.lineup.away.length > 0
-  );
+  const hasLineup = match.lineup && (match.lineup.home.length > 0 || match.lineup.away.length > 0);
 
   const fetchFromApi = async () => {
     setLoading(true);
@@ -92,11 +108,12 @@ export function LineupView({ match, onUpdate }: Props) {
         match.homeTeam.name,
         match.awayTeam.name,
         match.date,
-        match.competition.name
+        match.competition.name,
+        match.competition.leagueId,
       );
 
       if (fixtures.length === 0) {
-        setError('No fixture found on API-Sports for this match.');
+        setError('No fixture found on API-Sports for this match. Try editing the competition name.');
         return;
       }
 
@@ -110,8 +127,8 @@ export function LineupView({ match, onUpdate }: Props) {
 
       onUpdate(match.id, {
         lineup,
-        homeScore: fixture.homeScore,
-        awayScore: fixture.awayScore,
+        homeScore: fixture.homeScore ?? match.homeScore,
+        awayScore: fixture.awayScore ?? match.awayScore,
         venue: fixture.venue || match.venue,
         apiFixtureId: fixture.id,
       });
@@ -127,10 +144,9 @@ export function LineupView({ match, onUpdate }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-3">
         <p className="text-sm text-[#8b949e] text-center">
-          No lineup data yet.
           {match.isManual
-            ? ' This is a manually added match — edit to add players manually.'
-            : ' Fetch from API-Sports below.'}
+            ? 'Manually added match — add players via Edit.'
+            : 'No lineup data yet.'}
         </p>
         {!match.isManual && (
           <button
@@ -148,9 +164,7 @@ export function LineupView({ match, onUpdate }: Props) {
             {error}
           </div>
         )}
-        {fetched && (
-          <p className="text-xs text-[#3fb950]">✓ Lineup fetched successfully</p>
-        )}
+        {fetched && <p className="text-xs text-[#3fb950]">✓ Lineup fetched successfully</p>}
       </div>
     );
   }
@@ -159,27 +173,23 @@ export function LineupView({ match, onUpdate }: Props) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs text-[#8b949e]">
-          {match.lineup!.home.filter(p => p.position !== 'SUB').length} starters each side
+          {match.lineup!.home.filter(p => p.isStarter).length} starters · {match.lineup!.home.filter(p => p.cameOn).length} subs used each side
         </span>
-        {!match.isManual && (
-          <button
-            onClick={fetchFromApi}
-            disabled={loading}
-            className="flex items-center gap-1 text-xs text-[#8b949e] hover:text-[#58a6ff] transition-colors"
-          >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
-        )}
+        <button
+          onClick={fetchFromApi}
+          disabled={loading}
+          className="flex items-center gap-1 text-xs text-[#8b949e] hover:text-[#58a6ff] transition-colors"
+        >
+          <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
+          Refresh
+        </button>
       </div>
       <div className="flex gap-6">
         <TeamLineup name={match.homeTeam.name} players={match.lineup!.home} />
         <div className="w-px bg-[#30363d]" />
         <TeamLineup name={match.awayTeam.name} players={match.lineup!.away} />
       </div>
-      {error && (
-        <p className="text-xs text-[#f85149] mt-2">{error}</p>
-      )}
+      {error && <p className="text-xs text-[#f85149] mt-2">{error}</p>}
     </div>
   );
 }
