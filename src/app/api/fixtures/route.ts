@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 
 const LEAGUE_MAP: Record<string, { id: number; calendarYear?: boolean }> = {
