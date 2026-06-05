@@ -59,8 +59,8 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const date = searchParams.get('date');
-  const home = searchParams.get('home');
-  const away = searchParams.get('away');
+  const homeApiId = searchParams.get('homeApiId');
+  const awayApiId = searchParams.get('awayApiId');
   const competition = searchParams.get('competition') || '';
   const leagueIdParam = searchParams.get('leagueId');
 
@@ -73,7 +73,19 @@ export async function GET(req: NextRequest) {
 
   try {
     let fixtures: any[] = [];
-
+    
+// Strategy 0: use explicit team ID if provided — most reliable
+    const teamApiId = homeApiId || awayApiId;
+    if (teamApiId) {
+      for (const s of [season, season - 1, season + 1]) {
+        const res = await fetch(
+          `https://v3.football.api-sports.io/fixtures?team=${teamApiId}&season=${s}&date=${date}`,
+          { headers }
+        );
+        const data = await res.json();
+        if (data.response?.length) { fixtures = data.response; break; }
+      }
+    }
     // Strategy 1: known league ID + season + date
     if (leagueId) {
       for (const s of [season, season - 1, season + 1]) {
