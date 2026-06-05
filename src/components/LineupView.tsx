@@ -92,6 +92,7 @@ export function LineupView({ match, onUpdate }: Props) {
         match.homeTeam.name,
         match.awayTeam.name,
         match.date
+        match.competition.name
       );
 
       if (fixtures.length === 0) {
