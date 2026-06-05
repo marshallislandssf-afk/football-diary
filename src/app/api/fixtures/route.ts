@@ -4,6 +4,8 @@ const LEAGUE_MAP: Record<string, { id: number; calendarYear?: boolean }> = {
   'FIFA World Cup': { id: 1 },
   'FIFA World Cup Final': { id: 1 },
   'FIFA World Cup Group Stage': { id: 1 },
+  'FIFA World Cup Semi-Final': { id: 1 },
+  'FIFA World Cup Quarter-Final': { id: 1 },
   'UEFA Euro 2020 Final': { id: 4 },
   'UEFA Euro 2020 Group Stage': { id: 4 },
   'UEFA Euro 2016 Group Stage': { id: 4 },
@@ -41,6 +43,7 @@ function getSeason(competition: string, date: string): number {
   if (competition.includes('World Cup') && !competition.includes('Qualification')) {
     if (year === 2022 || year === 2023) return 2022;
     if (year === 2018 || year === 2019) return 2018;
+    if (year === 2026) return 2026;
     return year;
   }
   if (competition.includes('Qualification')) {
@@ -59,11 +62,13 @@ export async function GET(req: NextRequest) {
   const home = searchParams.get('home');
   const away = searchParams.get('away');
   const competition = searchParams.get('competition') || '';
+  const leagueIdParam = searchParams.get('leagueId');
 
   if (!date) return NextResponse.json({ error: 'Missing date' }, { status: 400 });
 
   const headers = { 'x-apisports-key': apiKey };
-  const leagueId = LEAGUE_MAP[competition]?.id ?? null;
+  // Use explicitly passed leagueId (from user-selected competition) or look up from name
+  const leagueId = leagueIdParam ? parseInt(leagueIdParam) : (LEAGUE_MAP[competition]?.id ?? null);
   const season = getSeason(competition, date);
 
   try {
@@ -124,6 +129,8 @@ export async function GET(req: NextRequest) {
         venue: f.fixture?.venue?.name,
         homeName: f.teams?.home?.name,
         awayName: f.teams?.away?.name,
+        leagueId: f.league?.id,
+        leagueName: f.league?.name,
       }))
     });
 
