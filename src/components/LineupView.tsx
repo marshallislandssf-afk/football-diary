@@ -91,7 +91,7 @@ export function LineupView({ match, onUpdate }: Props) {
       const fixtures = await searchFixtures(
         match.homeTeam.name,
         match.awayTeam.name,
-        match.date
+        match.date,
         match.competition.name
       );
 
