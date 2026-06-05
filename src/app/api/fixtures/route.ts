@@ -108,17 +108,34 @@ export async function GET(req: NextRequest) {
 
     if (!fixtures.length) return NextResponse.json({ fixtures: [] });
 
-    // Filter by team names
+    // Filter by team names — try strict match first, fall back to loose
     if (home && away) {
       const h = home.toLowerCase();
       const a = away.toLowerCase();
-      const filtered = fixtures.filter((f: any) => {
+
+      // Strict: both team names must match substantially
+      const strict = fixtures.filter((f: any) => {
         const fh = (f.teams?.home?.name || '').toLowerCase();
         const fa = (f.teams?.away?.name || '').toLowerCase();
-        return (fh.includes(h.split(' ')[0]) || h.includes(fh.split(' ')[0])) &&
-               (fa.includes(a.split(' ')[0]) || a.includes(fa.split(' ')[0]));
+        const homeMatch = fh.includes(h) || h.includes(fh) ||
+          (h.split(' ').filter((w:string) => w.length > 3).every((w:string) => fh.includes(w)));
+        const awayMatch = fa.includes(a) || a.includes(fa) ||
+          (a.split(' ').filter((w:string) => w.length > 3).every((w:string) => fa.includes(w)));
+        return homeMatch && awayMatch;
       });
-      if (filtered.length) fixtures = filtered;
+
+      if (strict.length) {
+        fixtures = strict;
+      } else {
+        // Loose fallback: first word only
+        const loose = fixtures.filter((f: any) => {
+          const fh = (f.teams?.home?.name || '').toLowerCase();
+          const fa = (f.teams?.away?.name || '').toLowerCase();
+          return (fh.includes(h.split(' ')[0]) || h.includes(fh.split(' ')[0])) &&
+                 (fa.includes(a.split(' ')[0]) || a.includes(fa.split(' ')[0]));
+        });
+        if (loose.length) fixtures = loose;
+      }
     }
 
     return NextResponse.json({
