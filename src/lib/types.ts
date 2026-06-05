@@ -1,6 +1,7 @@
 export type Competition = {
   name: string;
   country: string;
+  leagueId?: number;
   logo?: string;
 };
 
@@ -15,6 +16,12 @@ export type Player = {
   number?: number;
   position?: string;
   photo?: string;
+  isStarter?: boolean;
+  cameOn?: boolean;       // came on as substitute
+  cameOnMinute?: number;  // minute they came on
+  wentOff?: boolean;      // was substituted off
+  wentOffMinute?: number;
+  unusedSub?: boolean;    // named sub but never came on
 };
 
 export type Lineup = {
@@ -44,7 +51,7 @@ export type MatchImage = {
 
 export type Match = {
   id: string;
-  date: string; // ISO format
+  date: string;
   homeTeam: Team;
   awayTeam: Team;
   homeScore?: number;
