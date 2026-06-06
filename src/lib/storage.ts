@@ -48,4 +48,3 @@ export function getPlayerStats(matches: Match[]): { name: string; count: number;
     .map(([name, { count, positions }]) => ({ name, count, positions: Array.from(positions) }))
     .sort((a, b) => b.count - a.count);
 }
-
