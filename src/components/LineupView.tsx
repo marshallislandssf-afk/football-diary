@@ -105,14 +105,12 @@ export function LineupView({ match, onUpdate }: Props) {
     setError(null);
     try {
       const fixtures = await searchFixtures(
-  match.homeTeam.name,
-  match.awayTeam.name,
-  match.date,
-  match.competition.name,
-  match.competition.leagueId,
-  match.homeTeam.apiId,
-  match.awayTeam.apiId,
-);
+        match.homeTeam.name,
+        match.awayTeam.name,
+        match.date,
+        match.competition.name,
+        match.competition.leagueId,
+      );
 
       if (fixtures.length === 0) {
         setError('No fixture found on API-Sports for this match. Try editing the competition name.');
