@@ -74,18 +74,22 @@ function PlayerProfileModal({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 p-4 border-b border-[#30363d]">
+        <div className="grid grid-cols-4 gap-3 p-4 border-b border-[#30363d]">
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#3fb950]">{profile.appearances}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Appearances</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Seen</div>
+          </div>
+          <div className="bg-[#161b22] rounded-lg p-3 text-center">
+            <div className="text-xl font-bold text-[#e3b341]">{profile.goals}</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Goals</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#58a6ff]">{profile.teams.length}</div>
             <div className="text-[10px] text-[#8b949e] mt-0.5">Teams</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-[#e3b341]">{profile.positions.length > 0 ? profile.positions[0] : '—'}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Position</div>
+            <div className="text-xl font-bold text-[#bc8cff]">{profile.positions.length > 0 ? profile.positions[0] : '—'}</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Pos</div>
           </div>
         </div>
 
