@@ -2,11 +2,11 @@ import { Match } from '../lib/types';
 
 export const INITIAL_MATCHES: Match[] = [
   // 2026
-  {
+ {
     id: 'wisla-2026',
     date: '2026-05-08',
-    homeTeam: { name: 'Wisła Kraków' },
-    awayTeam: { name: 'Chrobry Głogów' },
+    homeTeam: { name: 'Wisła Kraków', apiId: 338 },
+    awayTeam: { name: 'Chrobry Głogów', apiId: 3483 },
     competition: { name: 'I Liga', country: 'Poland', leagueId: 107 },
     venue: 'Stadion Miejski, Kraków',
   },
