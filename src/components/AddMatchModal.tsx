@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Match } from '@/lib/types';
-import { X, Search, Loader2, ChevronDown } from 'lucide-react';
+import { X, Search, Loader2 } from 'lucide-react';
 
 function genId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -13,7 +13,114 @@ interface League {
   name: string;
   country: string;
   logo?: string;
-  seasons?: number[];
+}
+
+interface Team {
+  id: number;
+  name: string;
+  country: string;
+  logo?: string;
+}
+
+interface TeamSearchProps {
+  label: string;
+  value: Team | null;
+  onChange: (team: Team | null) => void;
+  placeholder?: string;
+}
+
+function TeamSearch({ label, value, onChange, placeholder }: TeamSearchProps) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); return; }
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/teams-search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        setResults(data.teams || []);
+        setShowDropdown(true);
+      } catch { }
+      finally { setLoading(false); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref}>
+      <label className="block text-xs font-medium text-[#8b949e] mb-1.5">{label} *</label>
+      {value ? (
+        <div className="flex items-center gap-2 bg-[#161b22] border border-[#3fb950]/40 rounded-lg px-3 py-2">
+          {value.logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={value.logo} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm text-[#e6edf3] font-medium truncate">{value.name}</div>
+            <div className="text-xs text-[#8b949e]">{value.country}</div>
+          </div>
+          <button onClick={() => onChange(null)} className="text-[#8b949e] hover:text-[#f85149] flex-shrink-0">
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#484f58]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => results.length > 0 && setShowDropdown(true)}
+            placeholder={placeholder || 'Search team…'}
+            className="w-full bg-[#161b22] border border-[#30363d] rounded-lg pl-8 pr-3 py-2 text-sm text-[#e6edf3] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
+          />
+          {loading && (
+            <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8b949e] animate-spin" />
+          )}
+          {showDropdown && results.length > 0 && (
+            <div className="absolute z-20 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg shadow-xl max-h-48 overflow-y-auto">
+              {results.map((team) => (
+                <button
+                  key={team.id}
+                  onClick={() => { onChange(team); setQuery(''); setShowDropdown(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#21262d] text-left transition-colors"
+                >
+                  {team.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={team.logo} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-[#e6edf3]">{team.name}</div>
+                    <div className="text-xs text-[#8b949e]">{team.country}</div>
+                  </div>
+                  <span className="text-xs text-[#484f58]">#{team.id}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {showDropdown && results.length === 0 && query.length >= 2 && !loading && (
+            <div className="absolute z-20 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg px-3 py-3 text-sm text-[#8b949e]">
+              No teams found for "{query}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface Props {
@@ -22,25 +129,24 @@ interface Props {
 }
 
 export function AddMatchModal({ onAdd, onClose }: Props) {
-  const [step, setStep] = useState<'details' | 'confirm'>('details');
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    homeTeamName: '',
-    awayTeamName: '',
     homeScore: '',
     awayScore: '',
     venue: '',
   });
 
+  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
+  const [selectedHomeTeam, setSelectedHomeTeam] = useState<Team | null>(null);
+  const [selectedAwayTeam, setSelectedAwayTeam] = useState<Team | null>(null);
+
   // League search
   const [leagueQuery, setLeagueQuery] = useState('');
   const [leagueResults, setLeagueResults] = useState<League[]>([]);
-  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [leagueLoading, setLeagueLoading] = useState(false);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   const leagueRef = useRef<HTMLDivElement>(null);
 
-  // Debounced league search
   useEffect(() => {
     if (leagueQuery.length < 2) { setLeagueResults([]); return; }
     const timer = setTimeout(async () => {
@@ -56,7 +162,6 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
     return () => clearTimeout(timer);
   }, [leagueQuery]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (leagueRef.current && !leagueRef.current.contains(e.target as Node)) {
@@ -67,15 +172,15 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const isValid = form.homeTeamName.trim() && form.awayTeamName.trim() && form.date && selectedLeague;
+  const isValid = selectedHomeTeam && selectedAwayTeam && form.date && selectedLeague;
 
   const handleAdd = () => {
     if (!isValid) return;
     const match: Match = {
       id: genId(),
       date: form.date,
-      homeTeam: { name: form.homeTeamName.trim() },
-      awayTeam: { name: form.awayTeamName.trim() },
+      homeTeam: { name: selectedHomeTeam!.name, apiId: selectedHomeTeam!.id },
+      awayTeam: { name: selectedAwayTeam!.name, apiId: selectedAwayTeam!.id },
       homeScore: form.homeScore !== '' ? parseInt(form.homeScore) : undefined,
       awayScore: form.awayScore !== '' ? parseInt(form.awayScore) : undefined,
       competition: {
@@ -113,26 +218,18 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
           </div>
 
           {/* Teams */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[#8b949e] mb-1.5">Home Team *</label>
-              <input
-                value={form.homeTeamName}
-                onChange={(e) => setForm({ ...form, homeTeamName: e.target.value })}
-                placeholder="e.g. Exeter City"
-                className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-[#e6edf3] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8b949e] mb-1.5">Away Team *</label>
-              <input
-                value={form.awayTeamName}
-                onChange={(e) => setForm({ ...form, awayTeamName: e.target.value })}
-                placeholder="e.g. Liverpool"
-                className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-[#e6edf3] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
-              />
-            </div>
-          </div>
+          <TeamSearch
+            label="Home Team"
+            value={selectedHomeTeam}
+            onChange={setSelectedHomeTeam}
+            placeholder="Search home team…"
+          />
+          <TeamSearch
+            label="Away Team"
+            value={selectedAwayTeam}
+            onChange={setSelectedAwayTeam}
+            placeholder="Search away team…"
+          />
 
           {/* Score */}
           <div className="grid grid-cols-2 gap-3">
@@ -158,7 +255,7 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
             </div>
           </div>
 
-          {/* Competition search */}
+          {/* Competition */}
           <div ref={leagueRef}>
             <label className="block text-xs font-medium text-[#8b949e] mb-1.5">Competition *</label>
             {selectedLeague ? (
@@ -171,10 +268,7 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
                   <div className="text-sm text-[#e6edf3] font-medium">{selectedLeague.name}</div>
                   <div className="text-xs text-[#8b949e]">{selectedLeague.country}</div>
                 </div>
-                <button
-                  onClick={() => { setSelectedLeague(null); setLeagueQuery(''); }}
-                  className="text-[#8b949e] hover:text-[#f85149]"
-                >
+                <button onClick={() => { setSelectedLeague(null); setLeagueQuery(''); }} className="text-[#8b949e] hover:text-[#f85149]">
                   <X size={14} />
                 </button>
               </div>
@@ -185,22 +279,18 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
                   value={leagueQuery}
                   onChange={(e) => setLeagueQuery(e.target.value)}
                   onFocus={() => leagueResults.length > 0 && setShowLeagueDropdown(true)}
-                  placeholder="Search competition (e.g. Premier League, La Liga)…"
+                  placeholder="Search competition…"
                   className="w-full bg-[#161b22] border border-[#30363d] rounded-lg pl-8 pr-3 py-2 text-sm text-[#e6edf3] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58]"
                 />
                 {leagueLoading && (
                   <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8b949e] animate-spin" />
                 )}
                 {showLeagueDropdown && leagueResults.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg shadow-xl max-h-56 overflow-y-auto">
+                  <div className="absolute z-20 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg shadow-xl max-h-48 overflow-y-auto">
                     {leagueResults.map((league) => (
                       <button
                         key={league.id}
-                        onClick={() => {
-                          setSelectedLeague(league);
-                          setLeagueQuery('');
-                          setShowLeagueDropdown(false);
-                        }}
+                        onClick={() => { setSelectedLeague(league); setLeagueQuery(''); setShowLeagueDropdown(false); }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#21262d] text-left transition-colors"
                       >
                         {league.logo && (
@@ -217,8 +307,8 @@ export function AddMatchModal({ onAdd, onClose }: Props) {
                   </div>
                 )}
                 {showLeagueDropdown && leagueResults.length === 0 && leagueQuery.length >= 2 && !leagueLoading && (
-                  <div className="absolute z-10 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg px-3 py-3 text-sm text-[#8b949e]">
-                    No competitions found for "{leagueQuery}"
+                  <div className="absolute z-20 w-full mt-1 bg-[#1c2128] border border-[#30363d] rounded-lg px-3 py-3 text-sm text-[#8b949e]">
+                    No competitions found
                   </div>
                 )}
               </div>
