@@ -70,6 +70,7 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
     (m.events || []).forEach((e) => {
       if (e.type !== 'Goal') return;
       if (e.detail === 'Missed Penalty') return;
+      if (e.comments?.includes('Penalty Shootout')) return;
       if (!e.player) return;
 
       // Find player in lineup by name to get their ID
