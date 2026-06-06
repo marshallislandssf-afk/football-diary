@@ -165,12 +165,24 @@ export default function SettingsPage() {
           </button>
 
           {isPublic && username && (
-            <div className="mt-3 flex items-center gap-2 bg-[#161b22] border border-[#3fb950]/30 rounded-lg px-3 py-2">
-              <span className="text-xs text-[#8b949e] flex-1 truncate">{profileUrl}</span>
-              <button onClick={handleCopy} className="flex items-center gap-1 text-xs text-[#3fb950] hover:text-[#2ea043] flex-shrink-0">
-                {copied ? <Check size={13} /> : <Copy size={13} />}
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2 bg-[#161b22] border border-[#3fb950]/30 rounded-lg px-3 py-2">
+                
+                  href={profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#3fb950] hover:underline flex-1 truncate"
+                >
+                  {profileUrl}
+                </a>
+                <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs text-[#3fb950] hover:text-[#2ea043] flex-shrink-0 border border-[#3fb950]/30 rounded px-2 py-1">
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                  {copied ? 'Copied!' : 'Copy link'}
+                </button>
+              </div>
+              <p className="text-[11px] text-[#484f58]">
+                Share this link with friends — they can view your matches without an account.
+              </p>
             </div>
           )}
 
