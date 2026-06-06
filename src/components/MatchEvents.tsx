@@ -47,7 +47,7 @@ export function MatchEvents({ events, homeTeam, awayTeam, apiHomeTeam, apiAwayTe
   const extraTime = events.filter(e => !e.comments?.includes('Penalty Shootout') && e.minute > 90);
   const shootout = events.filter(e => e.comments?.includes('Penalty Shootout'));
 
-  const renderEvent = (e: MatchEvent, i: number) => {
+  const renderEvent = (e: MatchEvent, i: number): JSX.Element => {
     const isHome =
       e.team === effectiveHome ||
       normalize(e.team || '').includes(normalize(effectiveHome.split(' ')[0])) ||
