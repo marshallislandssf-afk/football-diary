@@ -164,10 +164,14 @@ export function PlayerStatsPanel({ matches }: Props) {
             <PlayerPhoto profile={profile} size={28} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
-                <span className="text-xs font-mono text-[#3fb950] ml-2 flex-shrink-0">
-                  {profile.appearances}×
-                </span>
+              <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
+              <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                {profile.goals > 0 && (
+                  <span className="text-xs font-mono text-[#e3b341]">⚽{profile.goals}</span>
+                )}
+                <span className="text-xs font-mono text-[#3fb950]">{profile.appearances}×</span>
+              </div>
+            </div>
               </div>
               <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden">
                 <div
