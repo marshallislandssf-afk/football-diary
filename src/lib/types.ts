@@ -74,6 +74,8 @@ export type Match = {
   venue?: string;
   lineup?: Lineup;
   events?: MatchEvent[];
+  apiHomeTeam?: string;  // exact name from API-Sports
+  apiAwayTeam?: string;
   annotations?: Annotation[];
   notes?: MatchNote[];
   images?: MatchImage[];
