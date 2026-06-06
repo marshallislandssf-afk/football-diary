@@ -122,6 +122,8 @@ export function LineupView({ match, onUpdate }: Props) {
       onUpdate(match.id, {
         lineup,
         events,
+        apiHomeTeam,
+        apiAwayTeam,
         homeScore: fixture.homeScore ?? match.homeScore,
         awayScore: fixture.awayScore ?? match.awayScore,
         venue: fixture.venue || match.venue,
