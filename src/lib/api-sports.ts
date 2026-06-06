@@ -28,11 +28,16 @@ export async function searchFixtures(
 
 export async function fetchLineupAndEvents(
   fixtureId: number
-): Promise<{ lineup: Lineup | null; events: MatchEvent[] }> {
+): Promise<{ lineup: Lineup | null; events: MatchEvent[]; apiHomeTeam?: string; apiAwayTeam?: string }> {
   const params = new URLSearchParams({ fixtureId: fixtureId.toString() });
   const res = await fetch(`/api/lineup?${params}`);
   if (!res.ok) throw new Error('Lineup fetch failed');
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return { lineup: data.lineup || null, events: data.events || [] };
+  return {
+    lineup: data.lineup || null,
+    events: data.events || [],
+    apiHomeTeam: data.apiHomeTeam,
+    apiAwayTeam: data.apiAwayTeam,
+  };
 }
