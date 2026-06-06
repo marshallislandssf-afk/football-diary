@@ -1,35 +1,5 @@
 import { Match, PlayerProfile } from './types';
-import { INITIAL_MATCHES } from '../data/matches';
 
-const STORAGE_KEY = 'football_diary_matches_v2';
-
-export function getMatches(): Match[] {
-  if (typeof window === 'undefined') return INITIAL_MATCHES;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MATCHES));
-    return INITIAL_MATCHES;
-  } catch {
-    return INITIAL_MATCHES;
-  }
-}
-
-export function saveMatches(matches: Match[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
-}
-
-export function addMatch(match: Match): Match[] {
-  const matches = getMatches();
-  const updated = [...matches, match].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  saveMatches(updated);
-  return updated;
-}
-
-// Build player profiles using ID as primary key where available
 export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
   const map = new Map<string, PlayerProfile>();
 
@@ -66,14 +36,13 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
     [...(m.lineup.home || [])].forEach(p => processPlayer(p, m.homeTeam.name));
     [...(m.lineup.away || [])].forEach(p => processPlayer(p, m.awayTeam.name));
 
-    // Count goals from events
+    // Count goals from events (exclude shootout and missed penalties)
     (m.events || []).forEach((e) => {
       if (e.type !== 'Goal') return;
       if (e.detail === 'Missed Penalty') return;
       if (e.comments?.includes('Penalty Shootout')) return;
       if (!e.player) return;
 
-      // Find player in lineup by name to get their ID
       const allPlayers = [...(m.lineup!.home || []), ...(m.lineup!.away || [])];
       const lineupPlayer = allPlayers.find(p =>
         p.name === e.player ||

@@ -42,12 +42,14 @@ function renderEvent(e: MatchEvent, i: number, effectiveHome: string): JSX.Eleme
     e.team === effectiveHome ||
     normalize(e.team || '').includes(normalize(effectiveHome.split(' ')[0])) ||
     normalize(effectiveHome).includes(normalize((e.team || '').split(' ')[0]));
+
   const minuteStr = e.extra ? `${e.minute}+${e.extra}'` : `${e.minute}'`;
   const isMissed = e.detail === 'Missed Penalty';
+
   return (
     <div key={i} className={clsx('flex items-center gap-2 py-1', isHome ? 'flex-row' : 'flex-row-reverse')}>
       <span className="text-[11px] font-mono text-[#484f58] w-12 flex-shrink-0 text-center">{minuteStr}</span>
-      <span className={clsx('text-sm flex-shrink-0', getEventColor(e.type, e.detail))}>
+      <span className={clsx('text-sm flex-shrink-0 font-medium', getEventColor(e.type, e.detail))}>
         <EventIcon type={e.type} detail={e.detail} />
       </span>
       <span className={clsx('text-xs flex-1', isHome ? 'text-left' : 'text-right', isMissed ? 'line-through text-[#f85149]/70' : 'text-[#e6edf3]')}>
@@ -62,10 +64,13 @@ function renderEvent(e: MatchEvent, i: number, effectiveHome: string): JSX.Eleme
 
 export function MatchEvents({ events, homeTeam, awayTeam, apiHomeTeam }: Props): JSX.Element | null {
   if (!events || events.length === 0) return null;
+
   const effectiveHome = apiHomeTeam || homeTeam;
-  const regular = events.filter((e) => !e.comments?.includes('Penalty Shootout') && e.minute <= 90);
-  const extraTime = events.filter((e) => !e.comments?.includes('Penalty Shootout') && e.minute > 90);
-  const shootout = events.filter((e) => e.comments?.includes('Penalty Shootout'));
+
+  const regular = events.filter(e => !e.comments?.includes('Penalty Shootout') && e.minute <= 90);
+  const extraTime = events.filter(e => !e.comments?.includes('Penalty Shootout') && e.minute > 90);
+  const shootout = events.filter(e => e.comments?.includes('Penalty Shootout'));
+
   return (
     <div className="border-b border-[#21262d] px-4 py-3">
       <div className="flex items-center justify-between mb-2">

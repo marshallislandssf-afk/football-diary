@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Match, PlayerProfile } from '@/lib/types';
 import { getPlayerProfiles } from '@/lib/storage';
-import { Users, X, Calendar } from 'lucide-react';
+import { Users, X, Trophy, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Props {
@@ -18,7 +18,7 @@ function PlayerPhoto({ profile, size = 32 }: { profile: PlayerProfile; size?: nu
         className="rounded-full bg-[#30363d] flex items-center justify-center text-[#8b949e] font-medium text-xs flex-shrink-0"
         style={{ width: size, height: size }}
       >
-        {profile.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+        {profile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
       </div>
     );
   }
@@ -52,6 +52,7 @@ function PlayerProfileModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-[#1c2128] border border-[#30363d] rounded-2xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto">
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#30363d]">
           <div className="flex items-center gap-3">
             <PlayerPhoto profile={profile} size={48} />
@@ -72,25 +73,23 @@ function PlayerProfileModal({
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 p-4 border-b border-[#30363d]">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 p-4 border-b border-[#30363d]">
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#3fb950]">{profile.appearances}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Seen</div>
-          </div>
-          <div className="bg-[#161b22] rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-[#e3b341]">{profile.goals}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Goals</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Appearances</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#58a6ff]">{profile.teams.length}</div>
             <div className="text-[10px] text-[#8b949e] mt-0.5">Teams</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-[#bc8cff]">{profile.positions.length > 0 ? profile.positions[0] : '-'}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Pos</div>
+            <div className="text-xl font-bold text-[#e3b341]">{profile.positions.length > 0 ? profile.positions[0] : '—'}</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Position</div>
           </div>
         </div>
 
+        {/* Teams */}
         {profile.teams.length > 0 && (
           <div className="px-4 py-3 border-b border-[#30363d]">
             <div className="text-[10px] font-medium text-[#484f58] uppercase tracking-wider mb-2">Teams seen playing for</div>
@@ -102,6 +101,7 @@ function PlayerProfileModal({
           </div>
         )}
 
+        {/* Matches */}
         <div className="px-4 py-3">
           <div className="text-[10px] font-medium text-[#484f58] uppercase tracking-wider mb-2">Matches</div>
           <div className="space-y-2">
@@ -120,7 +120,7 @@ function PlayerProfileModal({
                   </div>
                   {m.homeScore !== undefined && (
                     <span className="text-xs font-mono text-[#3fb950]">
-                      {m.homeScore}-{m.awayScore}
+                      {m.homeScore}–{m.awayScore}
                     </span>
                   )}
                 </div>
@@ -161,12 +161,9 @@ export function PlayerStatsPanel({ matches }: Props) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
                 <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
-                <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                  {profile.goals > 0 && (
-                    <span className="text-xs font-mono text-[#e3b341]">G:{profile.goals}</span>
-                  )}
-                  <span className="text-xs font-mono text-[#3fb950]">{profile.appearances}x</span>
-                </div>
+                <span className="text-xs font-mono text-[#3fb950] ml-2 flex-shrink-0">
+                  {profile.appearances}×
+                </span>
               </div>
               <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden">
                 <div

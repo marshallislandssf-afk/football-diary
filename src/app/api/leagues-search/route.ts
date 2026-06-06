@@ -6,18 +6,11 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const query = searchParams.get('q');
-  const country = searchParams.get('country');
-
-  if (!query && !country) return NextResponse.json({ leagues: [] });
+  if (!query) return NextResponse.json({ leagues: [] });
 
   const headers = { 'x-apisports-key': apiKey };
-
-  const params = new URLSearchParams();
-  if (query) params.set('search', query);
-  if (country) params.set('country', country);
-
   const res = await fetch(
-    `https://v3.football.api-sports.io/leagues?${params}`,
+    `https://v3.football.api-sports.io/leagues?search=${encodeURIComponent(query)}`,
     { headers }
   );
   const data = await res.json();
@@ -28,7 +21,6 @@ export async function GET(req: NextRequest) {
       name: l.league.name,
       country: l.country.name,
       logo: l.league.logo,
-      seasons: l.seasons?.map((s: any) => s.year).slice(-5),
     }))
   });
 }

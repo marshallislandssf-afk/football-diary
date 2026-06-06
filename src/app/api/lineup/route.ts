@@ -23,8 +23,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ lineup: null, events: [] });
     }
 
-    // Build substitution maps
-    const subsOn: Record<string, { minute: number; playerId?: number }> = {};
+    const subsOn: Record<string, { minute: number }> = {};
     const subsOff: Record<string, { minute: number }> = {};
 
     const rawEvents = eventsData.response || [];
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest) {
     rawEvents
       .filter((e: any) => e.type === 'subst')
       .forEach((e: any) => {
-        if (e.assist?.name) subsOn[e.assist.name] = { minute: e.time?.elapsed ?? 0, playerId: e.assist?.id };
+        if (e.assist?.name) subsOn[e.assist.name] = { minute: e.time?.elapsed ?? 0 };
         if (e.player?.name) subsOff[e.player.name] = { minute: e.time?.elapsed ?? 0 };
       });
 
@@ -64,9 +63,8 @@ export async function GET(req: NextRequest) {
       return [...starters, ...subs];
     };
 
-    // Format events for storage
     const events = rawEvents
-      .filter((e: any) => e.type !== 'subst') // subs already in lineup
+      .filter((e: any) => e.type !== 'subst')
       .map((e: any) => ({
         minute: e.time?.elapsed ?? 0,
         extra: e.time?.extra ?? undefined,

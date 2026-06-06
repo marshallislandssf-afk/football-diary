@@ -17,7 +17,7 @@ function matchToRow(match: Match, userId: string) {
     competition_league_id: match.competition.leagueId ?? null,
     venue: match.venue ?? null,
     is_manual: match.isManual ?? false,
-    is_public: true,
+    is_public: false,
     api_fixture_id: match.apiFixtureId ?? null,
     api_home_team: match.apiHomeTeam ?? null,
     api_away_team: match.apiAwayTeam ?? null,
@@ -62,7 +62,6 @@ export async function getMatches(): Promise<Match[]> {
     .from('matches')
     .select('*')
     .order('date', { ascending: false });
-
   if (error) throw error;
   return (data || []).map(rowToMatch);
 }
@@ -77,30 +76,16 @@ export async function saveMatch(match: Match, userId: string): Promise<void> {
 
 export async function updateMatch(id: string, updates: Partial<Match>, userId: string): Promise<void> {
   const supabase = createClient();
-  const existing = await supabase.from('matches').select('*').eq('id', id).single();
-  if (existing.error) throw existing.error;
-  const merged = rowToMatch(existing.data);
-  const updated = { ...merged, ...updates };
-  await saveMatch(updated, userId);
+  const { data: existing, error: fetchError } = await supabase.from('matches').select('*').eq('id', id).single();
+  if (fetchError) throw fetchError;
+  const merged = { ...rowToMatch(existing), ...updates };
+  await saveMatch(merged, userId);
 }
 
 export async function deleteMatch(id: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.from('matches').delete().eq('id', id);
   if (error) throw error;
-}
-
-export async function getPublicMatches(userId: string): Promise<Match[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('matches')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_public', true)
-    .order('date', { ascending: false });
-
-  if (error) throw error;
-  return (data || []).map(rowToMatch);
 }
 
 export async function importFromLocalStorage(matches: Match[], userId: string): Promise<void> {

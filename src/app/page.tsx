@@ -8,14 +8,14 @@ import { MatchCard } from '@/components/MatchCard';
 import { AddMatchModal } from '@/components/AddMatchModal';
 import { PlayerStatsPanel } from '@/components/PlayerStatsPanel';
 import { StatsBar } from '@/components/StatsBar';
-import { Plus, Search, Users, SlidersHorizontal, LogOut, Upload, Globe } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
+import { Plus, Search, Users, SlidersHorizontal, Upload, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
-import Link from 'next/link';
 
 type Tab = 'matches' | 'players';
 
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('matches');
@@ -25,6 +25,18 @@ export default function Home() {
   const [filterYear, setFilterYear] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [hasLocalData, setHasLocalData] = useState(false);
+
+  useEffect(() => {
+    // Check for local data to import
+    const local = localStorage.getItem('football_diary_matches_v2');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.length > 0) setHasLocalData(true);
+      } catch {}
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -38,34 +50,22 @@ export default function Home() {
   const handleUpdate = async (id: string, updates: Partial<Match>) => {
     if (!user) return;
     setMatches(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-    try {
-      await updateMatch(id, updates, user.id);
-    } catch (e) {
-      console.error('Failed to update match', e);
-    }
+    try { await updateMatch(id, updates, user.id); } catch (e) { console.error(e); }
   };
 
   const handleDelete = async (id: string) => {
     if (!user) return;
     setMatches(prev => prev.filter(m => m.id !== id));
-    try {
-      await deleteMatch(id);
-    } catch (e) {
-      console.error('Failed to delete match', e);
-    }
+    try { await deleteMatch(id); } catch (e) { console.error(e); }
   };
 
   const handleAdd = async (match: Match) => {
     if (!user) return;
     setMatches(prev => [match, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    try {
-      await saveMatch(match, user.id);
-    } catch (e) {
-      console.error('Failed to save match', e);
-    }
+    try { await saveMatch(match, user.id); } catch (e) { console.error(e); }
   };
 
-  const handleImportLocalStorage = async () => {
+  const handleImport = async () => {
     if (!user) return;
     setImporting(true);
     try {
@@ -75,12 +75,10 @@ export default function Home() {
       await importFromLocalStorage(localMatches, user.id);
       const updated = await getMatches();
       setMatches(updated);
+      setHasLocalData(false);
       alert(`Imported ${localMatches.length} matches successfully!`);
-    } catch (e) {
-      alert('Import failed. Please try again.');
-    } finally {
-      setImporting(false);
-    }
+    } catch { alert('Import failed. Please try again.'); }
+    finally { setImporting(false); }
   };
 
   const countries = useMemo(() => Array.from(new Set(matches.map(m => m.competition.country))).sort(), [matches]);
@@ -113,14 +111,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <header className="sticky top-0 z-30 border-b" style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">⚽</span>
-            <span className="font-bold text-[#e6edf3] text-base tracking-tight">Football Diary</span>
-          </div>
+      <AppHeader onAddMatch={() => setShowAddModal(true)} />
 
-          <nav className="flex items-center gap-1">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        {/* Nav tabs + add button */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-1">
             {(['matches', 'players'] as Tab[]).map(tab => (
               <button
                 key={tab}
@@ -131,38 +127,19 @@ export default function Home() {
                 {tab === 'players' ? <><Users size={14} className="inline mr-1" />Players</> : 'Matches'}
               </button>
             ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <Plus size={15} />
-              <span className="hidden sm:inline">Add Match</span>
-            </button>
-
-            {/* User menu */}
-            <div className="flex items-center gap-1">
-              <span className="hidden sm:block text-xs text-[#8b949e] max-w-[120px] truncate">
-                {user?.email}
-              </span>
-              <button
-                onClick={signOut}
-                title="Sign out"
-                className="p-1.5 text-[#8b949e] hover:text-[#e6edf3] rounded-lg hover:bg-[#21262d] transition-colors"
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
           </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus size={15} />
+            <span className="hidden sm:inline">Add Match</span>
+          </button>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="text-[#8b949e] text-sm">Loading your matches…</div>
+            <Loader2 size={20} className="animate-spin text-[#8b949e]" />
           </div>
         ) : (
           <>
@@ -170,20 +147,20 @@ export default function Home() {
               <div className="space-y-6">
                 <StatsBar matches={matches} />
 
-                {/* Import banner — show if they have no matches but have localStorage data */}
-                {matches.length === 0 && (
+                {/* Import banner */}
+                {hasLocalData && matches.length === 0 && (
                   <div className="bg-[#1c2128] border border-[#e3b341]/30 rounded-xl p-4 flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-[#e6edf3]">Import your existing matches</p>
-                      <p className="text-xs text-[#8b949e] mt-0.5">Found data from before you created an account</p>
+                      <p className="text-xs text-[#8b949e] mt-0.5">Found match data from before you created an account</p>
                     </div>
                     <button
-                      onClick={handleImportLocalStorage}
+                      onClick={handleImport}
                       disabled={importing}
                       className="flex items-center gap-2 px-3 py-1.5 bg-[#e3b341]/20 hover:bg-[#e3b341]/30 text-[#e3b341] text-sm font-medium rounded-lg transition-colors flex-shrink-0"
                     >
-                      <Upload size={14} />
-                      {importing ? 'Importing…' : 'Import'}
+                      {importing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                      {importing ? 'Importing...' : 'Import'}
                     </button>
                   </div>
                 )}
@@ -194,7 +171,7 @@ export default function Home() {
                     <input
                       value={search}
                       onChange={e => setSearch(e.target.value)}
-                      placeholder="Search teams, competitions, venues…"
+                      placeholder="Search teams, competitions, venues..."
                       className="w-full bg-[#1c2128] border border-[#30363d] rounded-lg pl-8 pr-3 py-2 text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
                     />
                   </div>
@@ -271,7 +248,7 @@ export default function Home() {
               <div className="max-w-2xl">
                 <div className="mb-6">
                   <h1 className="text-xl font-bold text-[#e6edf3] mb-1">Players Watched</h1>
-                  <p className="text-sm text-[#8b949e]">Players ranked by appearances across all matches with lineup data.</p>
+                  <p className="text-sm text-[#8b949e]">Ranked by appearances. Click any player for their profile.</p>
                 </div>
                 <div className="bg-[#1c2128] border border-[#30363d] rounded-xl p-5">
                   <PlayerStatsPanel matches={matches} />

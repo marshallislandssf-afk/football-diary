@@ -7,25 +7,6 @@ module.exports = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'monospace'],
-        display: ['"DM Sans"', 'sans-serif'],
-      },
-      colors: {
-        pitch: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          900: '#14532d',
-        },
-        slate: {
-          850: '#1a2332',
-          950: '#0a0f1a',
-        }
-      },
       animation: {
         'slide-down': 'slideDown 0.25s ease-out',
         'fade-in': 'fadeIn 0.3s ease-out',

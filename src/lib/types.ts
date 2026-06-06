@@ -16,7 +16,6 @@ export type Player = {
   name: string;
   number?: number;
   position?: string;
-  photo?: string;
   isStarter?: boolean;
   cameOn?: boolean;
   cameOnMinute?: number;
@@ -38,7 +37,7 @@ export type MatchEvent = {
   playerId?: number;
   assist?: string;
   assistId?: number;
-  type: 'Goal' | 'Card' | 'subst' | 'Var';
+  type: string;
   detail: string;
   comments?: string;
 };
@@ -74,7 +73,7 @@ export type Match = {
   venue?: string;
   lineup?: Lineup;
   events?: MatchEvent[];
-  apiHomeTeam?: string;  // exact name from API-Sports
+  apiHomeTeam?: string;
   apiAwayTeam?: string;
   annotations?: Annotation[];
   notes?: MatchNote[];
@@ -83,7 +82,6 @@ export type Match = {
   apiFixtureId?: number;
 };
 
-// Player profile built from across all matches
 export type PlayerProfile = {
   id?: number;
   name: string;

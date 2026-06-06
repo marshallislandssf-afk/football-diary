@@ -16,19 +16,13 @@ const TYPE_STYLES: Record<string, string> = {
 
 export function AnnotationBadge({ annotation, compact }: Props) {
   return (
-    <div
-      className={clsx(
-        'flex items-start gap-1.5 border rounded-lg text-xs font-medium',
-        TYPE_STYLES[annotation.type] || TYPE_STYLES.custom,
-        compact ? 'px-2 py-1 max-w-[160px]' : 'px-3 py-2 max-w-full'
-      )}
-    >
-      {annotation.emoji && (
-        <span className="text-sm leading-none mt-0.5">{annotation.emoji}</span>
-      )}
-      <span className={compact ? 'truncate' : 'leading-snug'}>
-        {annotation.text}
-      </span>
+    <div className={clsx(
+      'flex items-start gap-1.5 border rounded-lg text-xs font-medium',
+      TYPE_STYLES[annotation.type] || TYPE_STYLES.custom,
+      compact ? 'px-2 py-1 max-w-[160px]' : 'px-3 py-2 max-w-full'
+    )}>
+      {annotation.emoji && <span className="text-sm leading-none mt-0.5">{annotation.emoji}</span>}
+      <span className={compact ? 'truncate' : 'leading-snug'}>{annotation.text}</span>
     </div>
   );
 }

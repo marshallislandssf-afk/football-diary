@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
 const LEAGUE_MAP: Record<string, { id: number; calendarYear?: boolean }> = {
@@ -22,15 +21,16 @@ const LEAGUE_MAP: Record<string, { id: number; calendarYear?: boolean }> = {
   'FA Cup 3rd Round': { id: 45 },
   'League Cup': { id: 48 },
   'La Liga': { id: 140 },
-  'Tercera Federación Group 5': { id: 142 },
+  'Tercera Federacion Group 5': { id: 142 },
   'Ligue 1': { id: 61 },
   'Ekstraklasa': { id: 106 },
   'I Liga': { id: 107 },
   'II Liga': { id: 108 },
   'SuperLiga': { id: 283 },
-  'Brasileirão Série A': { id: 71, calendarYear: true },
+  'Brasileirao Serie A': { id: 71, calendarYear: true },
   'Copa do Brasil': { id: 73, calendarYear: true },
   'Copa Libertadores': { id: 13, calendarYear: true },
+  'CONMEBOL Sudamericana': { id: 11, calendarYear: true },
   'UEFA Europa Conference League Qualifying': { id: 848 },
 };
 
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
   try {
     let fixtures: any[] = [];
 
-    // Strategy 0: use explicit team ID if provided — most reliable
+    // Strategy 0: use explicit team ID
     const teamApiId = homeApiId || awayApiId;
     if (teamApiId) {
       for (const s of [season, season - 1, season + 1]) {
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Strategy 2: search by team name to get ID, then fixtures by team+season
+    // Strategy 2: search by team name
     if (!fixtures.length && home) {
       const teamRes = await fetch(
         `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(home)}`,
@@ -121,9 +121,9 @@ export async function GET(req: NextRequest) {
             const fa = (f.teams?.away?.name || '').toLowerCase();
             const fh = (f.teams?.home?.name || '').toLowerCase();
             return fa.includes(awayLower.split(' ')[0]) ||
-                   awayLower.includes(fa.split(' ')[0]) ||
-                   fh.includes(awayLower.split(' ')[0]) ||
-                   awayLower.includes(fh.split(' ')[0]);
+              awayLower.includes(fa.split(' ')[0]) ||
+              fh.includes(awayLower.split(' ')[0]) ||
+              awayLower.includes(fh.split(' ')[0]);
           });
           if (matched.length) { fixtures = matched; break; }
         }
@@ -133,18 +133,21 @@ export async function GET(req: NextRequest) {
 
     if (!fixtures.length) return NextResponse.json({ fixtures: [] });
 
-    // Filter by team names — strict first, then loose
+    // Filter by team names
     if (home && away) {
       const h = home.toLowerCase();
       const a = away.toLowerCase();
+      const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
       const strict = fixtures.filter((f: any) => {
-        const fh = (f.teams?.home?.name || '').toLowerCase();
-        const fa = (f.teams?.away?.name || '').toLowerCase();
-        const homeMatch = fh.includes(h) || h.includes(fh) ||
-          h.split(' ').filter((w: string) => w.length > 3).every((w: string) => fh.includes(w));
-        const awayMatch = fa.includes(a) || a.includes(fa) ||
-          a.split(' ').filter((w: string) => w.length > 3).every((w: string) => fa.includes(w));
+        const fh = normalize(f.teams?.home?.name || '');
+        const fa = normalize(f.teams?.away?.name || '');
+        const nh = normalize(h);
+        const na = normalize(a);
+        const homeMatch = fh.includes(nh) || nh.includes(fh) ||
+          nh.split(' ').filter((w: string) => w.length > 3).every((w: string) => fh.includes(w));
+        const awayMatch = fa.includes(na) || na.includes(fa) ||
+          na.split(' ').filter((w: string) => w.length > 3).every((w: string) => fa.includes(w));
         return homeMatch && awayMatch;
       });
 
@@ -155,7 +158,7 @@ export async function GET(req: NextRequest) {
           const fh = (f.teams?.home?.name || '').toLowerCase();
           const fa = (f.teams?.away?.name || '').toLowerCase();
           return (fh.includes(h.split(' ')[0]) || h.includes(fh.split(' ')[0])) &&
-                 (fa.includes(a.split(' ')[0]) || a.includes(fa.split(' ')[0]));
+            (fa.includes(a.split(' ')[0]) || a.includes(fa.split(' ')[0]));
         });
         if (loose.length) fixtures = loose;
       }

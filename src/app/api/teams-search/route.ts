@@ -6,11 +6,9 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const query = searchParams.get('q');
-
   if (!query || query.length < 2) return NextResponse.json({ teams: [] });
 
   const headers = { 'x-apisports-key': apiKey };
-
   const res = await fetch(
     `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(query)}`,
     { headers }

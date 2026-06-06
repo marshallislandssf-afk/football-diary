@@ -1,22 +1,21 @@
 import { Match } from '../lib/types';
 
 export const INITIAL_MATCHES: Match[] = [
-  // 2026
- {
+  {
     id: 'wisla-2026',
     date: '2026-05-08',
-    homeTeam: { name: 'Wisła Kraków', apiId: 338 },
-    awayTeam: { name: 'Chrobry Głogów', apiId: 3483 },
+    homeTeam: { name: 'Wisla Krakow', apiId: 338 },
+    awayTeam: { name: 'Chrobry Glogow', apiId: 3483 },
     competition: { name: 'I Liga', country: 'Poland', leagueId: 107 },
-    venue: 'Stadion Miejski, Kraków',
+    venue: 'Stadion Miejski, Krakow',
   },
   {
     id: 'wieczysta-2026',
     date: '2026-05-09',
-    homeTeam: { name: 'Wieczysta Kraków', apiId: 17115 },
-    awayTeam: { name: 'Miedź Legnica' },
+    homeTeam: { name: 'Wieczysta Krakow', apiId: 17115 },
+    awayTeam: { name: 'Miedz Legnica' },
     competition: { name: 'I Liga', country: 'Poland', leagueId: 107 },
-    venue: 'Kraków',
+    venue: 'Krakow',
   },
   {
     id: 'cracovia-2026',
@@ -24,9 +23,8 @@ export const INITIAL_MATCHES: Match[] = [
     homeTeam: { name: 'Cracovia' },
     awayTeam: { name: 'Radomiak Radom' },
     competition: { name: 'Ekstraklasa', country: 'Poland', leagueId: 106 },
-    venue: 'Stadion Cracovii, Kraków',
+    venue: 'Stadion Cracovii, Krakow',
   },
-  // 2025
   {
     id: 'wales-2025',
     date: '2025-11-18',
@@ -66,20 +64,20 @@ export const INITIAL_MATCHES: Match[] = [
     awayTeam: { name: 'Botafogo PB', apiId: 1197 },
     competition: { name: 'Copa do Brasil', country: 'Brazil', leagueId: 73 },
     venue: 'Rio de Janeiro',
+    isManual: true,
   },
   {
     id: 'vasco-2025',
     date: '2025-05-17',
     homeTeam: { name: 'Vasco da Gama', apiId: 133 },
-    awayTeam: { name: 'Fortaleza', apiId: 154 },
-    competition: { name: 'Brasileirão Série A', country: 'Brazil', leagueId: 71 },
-    venue: 'São Januário, Rio de Janeiro',
+    awayTeam: { name: 'Fortaleza EC', apiId: 154 },
+    competition: { name: 'Brasileirao Serie A', country: 'Brazil', leagueId: 71 },
+    venue: 'Sao Januario, Rio de Janeiro',
   },
-  // 2023
   {
     id: 'dinamo-2023',
     date: '2023-10-08',
-    homeTeam: { name: 'Dinamo București' },
+    homeTeam: { name: 'Dinamo Bucuresti' },
     awayTeam: { name: 'CFR Cluj' },
     competition: { name: 'SuperLiga', country: 'Romania', leagueId: 283 },
     venue: 'Stadionul Dinamo, Bucharest',
@@ -90,7 +88,7 @@ export const INITIAL_MATCHES: Match[] = [
     homeTeam: { name: 'Marseille' },
     awayTeam: { name: 'Brest' },
     competition: { name: 'Ligue 1', country: 'France', leagueId: 61 },
-    venue: 'Stade Vélodrome, Marseille',
+    venue: 'Stade Velodrome, Marseille',
   },
   {
     id: 'psg-2023',
@@ -100,7 +98,6 @@ export const INITIAL_MATCHES: Match[] = [
     competition: { name: 'Ligue 1', country: 'France', leagueId: 61 },
     venue: 'Parc des Princes, Paris',
   },
-  // 2022
   {
     id: 'wc-final-2022',
     date: '2022-12-18',
@@ -114,7 +111,7 @@ export const INITIAL_MATCHES: Match[] = [
       {
         id: 'ann-wc-1',
         type: 'special',
-        text: 'World Cup Final — Argentina win on penalties. Messi lifts the trophy. One of the greatest matches in football history.',
+        text: 'World Cup Final - Argentina win on penalties. Messi lifts the trophy.',
         emoji: '🏆',
       },
       {
@@ -130,10 +127,9 @@ export const INITIAL_MATCHES: Match[] = [
     date: '2022-04-27',
     homeTeam: { name: 'Fluminense', apiId: 124 },
     awayTeam: { name: 'Union Santa Fe', apiId: 441 },
-    competition: { name: 'Copa Libertadores', country: 'South America', leagueId: 13 },
-    venue: 'Maracanã, Rio de Janeiro',
+    competition: { name: 'CONMEBOL Sudamericana', country: 'South America', leagueId: 11 },
+    venue: 'Maracana, Rio de Janeiro',
   },
-  // 2021
   {
     id: 'euro-final-2021',
     date: '2021-07-11',
@@ -169,7 +165,6 @@ export const INITIAL_MATCHES: Match[] = [
     awayTeam: { name: 'Larne' },
     competition: { name: 'UEFA Europa Conference League Qualifying', country: 'International', leagueId: 848 },
   },
-  // 2019
   {
     id: 'barca-eibar-2019',
     date: '2019-01-13',
@@ -183,10 +178,9 @@ export const INITIAL_MATCHES: Match[] = [
     date: '2019-01-13',
     homeTeam: { name: 'UE Sants' },
     awayTeam: { name: 'CF Badalona' },
-    competition: { name: 'Tercera Federación Group 5', country: 'Spain', leagueId: 142 },
+    competition: { name: 'Tercera Federacion Group 5', country: 'Spain', leagueId: 142 },
     isManual: true,
   },
-  // 2018
   {
     id: 'wc-croatia-2018',
     date: '2018-07-11',
@@ -200,12 +194,11 @@ export const INITIAL_MATCHES: Match[] = [
       {
         id: 'ann-croatia',
         type: 'special',
-        text: 'World Cup Semi-Final — Croatia beat England in extra time',
+        text: 'World Cup Semi-Final - Croatia beat England in extra time',
         emoji: '💔',
       },
     ],
   },
-  // 2017
   {
     id: 'eng-bra-2017',
     date: '2017-11-14',
@@ -214,14 +207,13 @@ export const INITIAL_MATCHES: Match[] = [
     competition: { name: 'International Friendly', country: 'International', leagueId: 10 },
     venue: 'Wembley Stadium, London',
   },
-  // 2016
   {
     id: 'euro-ukr-pol-2016',
     date: '2016-06-21',
     homeTeam: { name: 'Ukraine' },
     awayTeam: { name: 'Poland' },
     competition: { name: 'UEFA Euro 2016 Group Stage', country: 'International', leagueId: 4 },
-    venue: 'Stade Vélodrome, Marseille',
+    venue: 'Stade Velodrome, Marseille',
   },
   {
     id: 'liverpool-exeter-2016',
@@ -242,12 +234,11 @@ export const INITIAL_MATCHES: Match[] = [
       {
         id: 'ann-exeter-1',
         type: 'special',
-        text: 'Exeter hold Premier League Liverpool to a draw at home — forcing a replay at Anfield',
+        text: 'Exeter hold Premier League Liverpool to a draw at home - forcing a replay at Anfield',
         emoji: '⚡',
       },
     ],
   },
-  // 2015
   {
     id: 'arsenal-2015',
     date: '2015-08-24',
