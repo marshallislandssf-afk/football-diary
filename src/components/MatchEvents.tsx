@@ -41,8 +41,9 @@ export function MatchEvents({ events, homeTeam, awayTeam }: Props) {
   const shootout = events.filter(e => e.comments?.includes('Penalty Shootout'));
 
   const renderEvent = (e: MatchEvent, i: number) => {
-    const isHome = e.team?.toLowerCase().includes(homeTeam.toLowerCase().split(' ')[0]) ||
-                   homeTeam.toLowerCase().includes(e.team?.toLowerCase().split(' ')[0] || '');
+    const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const isHome = normalize(e.team || '').includes(normalize(homeTeam.split(' ')[0])) ||
+                   normalize(homeTeam).includes(normalize((e.team || '').split(' ')[0]));
     const minuteStr = e.extra ? `${e.minute}+${e.extra}'` : `${e.minute}'`;
     const isMissed = e.detail === 'Missed Penalty';
 
