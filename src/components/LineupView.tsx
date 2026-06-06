@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Match, Player } from '@/lib/types';
-import { searchFixtures, fetchLineup } from '@/lib/api-sports';
+import { searchFixtures, fetchLineupAndEvents } from '@/lib/api-sports';
 import { RefreshCw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -24,11 +24,9 @@ function PlayerRow({ player }: { player: Player }) {
       <span className={clsx('flex-1 text-sm', isUnused ? 'text-[#8b949e]' : 'text-[#e6edf3]')}>
         {player.name}
       </span>
-      {/* Sub on badge with minute */}
       {player.cameOn && player.cameOnMinute !== undefined && (
         <span className="text-[10px] text-[#3fb950] font-mono">↑{player.cameOnMinute}'</span>
       )}
-      {/* Went off badge with minute */}
       {player.wentOff && player.wentOffMinute !== undefined && (
         <span className="text-[10px] text-[#f85149] font-mono">↓{player.wentOffMinute}'</span>
       )}
@@ -52,21 +50,17 @@ function PlayerRow({ player }: { player: Player }) {
 }
 
 function TeamLineup({ name, players }: { name: string; players: Player[] }) {
-  const starters = players.filter((p) => p.isStarter);
-  const activeSubs = players.filter((p) => !p.isStarter && p.cameOn);
-  const unusedSubs = players.filter((p) => !p.isStarter && p.unusedSub);
+  const starters = players.filter(p => p.isStarter);
+  const activeSubs = players.filter(p => !p.isStarter && p.cameOn);
+  const unusedSubs = players.filter(p => !p.isStarter && p.unusedSub);
   const [showUnused, setShowUnused] = useState(false);
 
   return (
     <div className="flex-1 min-w-0">
       <h4 className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2">{name}</h4>
-
-      {/* Starters */}
       <div>
         {starters.map((p, i) => <PlayerRow key={p.id || `${p.name}-${i}`} player={p} />)}
       </div>
-
-      {/* Active subs */}
       {activeSubs.length > 0 && (
         <div className="mt-2">
           <div className="text-[10px] text-[#484f58] uppercase tracking-wider mb-1">Substitutes used</div>
@@ -75,8 +69,6 @@ function TeamLineup({ name, players }: { name: string; players: Player[] }) {
             .map((p, i) => <PlayerRow key={p.id || `${p.name}-sub-${i}`} player={p} />)}
         </div>
       )}
-
-      {/* Unused subs — collapsed by default */}
       {unusedSubs.length > 0 && (
         <div className="mt-2">
           <button
@@ -110,15 +102,17 @@ export function LineupView({ match, onUpdate }: Props) {
         match.date,
         match.competition.name,
         match.competition.leagueId,
+        match.homeTeam.apiId,
+        match.awayTeam.apiId,
       );
 
       if (fixtures.length === 0) {
-        setError('No fixture found on API-Sports for this match. Try editing the competition name.');
+        setError('No fixture found on API-Sports for this match.');
         return;
       }
 
       const fixture = fixtures[0];
-      const lineup = await fetchLineup(fixture.id);
+      const { lineup, events } = await fetchLineupAndEvents(fixture.id);
 
       if (!lineup) {
         setError('Lineup data not available for this fixture.');
@@ -127,6 +121,7 @@ export function LineupView({ match, onUpdate }: Props) {
 
       onUpdate(match.id, {
         lineup,
+        events,
         homeScore: fixture.homeScore ?? match.homeScore,
         awayScore: fixture.awayScore ?? match.awayScore,
         venue: fixture.venue || match.venue,
@@ -144,9 +139,7 @@ export function LineupView({ match, onUpdate }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-3">
         <p className="text-sm text-[#8b949e] text-center">
-          {match.isManual
-            ? 'Manually added match — add players via Edit.'
-            : 'No lineup data yet.'}
+          {match.isManual ? 'Manually added match.' : 'No lineup data yet.'}
         </p>
         {!match.isManual && (
           <button
@@ -192,4 +185,3 @@ export function LineupView({ match, onUpdate }: Props) {
       {error && <p className="text-xs text-[#f85149] mt-2">{error}</p>}
     </div>
   );
-}
