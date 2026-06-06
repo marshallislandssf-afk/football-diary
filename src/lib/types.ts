@@ -90,6 +90,7 @@ export type PlayerProfile = {
   photo?: string;
   positions: string[];
   appearances: number;
+  goals: number;
   matchIds: string[];
   teams: string[];
 };
