@@ -8,6 +8,7 @@ export type Competition = {
 export type Team = {
   name: string;
   logo?: string;
+  apiId?: number;
 };
 
 export type Player = {
@@ -17,16 +18,29 @@ export type Player = {
   position?: string;
   photo?: string;
   isStarter?: boolean;
-  cameOn?: boolean;       // came on as substitute
-  cameOnMinute?: number;  // minute they came on
-  wentOff?: boolean;      // was substituted off
+  cameOn?: boolean;
+  cameOnMinute?: number;
+  wentOff?: boolean;
   wentOffMinute?: number;
-  unusedSub?: boolean;    // named sub but never came on
+  unusedSub?: boolean;
 };
 
 export type Lineup = {
   home: Player[];
   away: Player[];
+};
+
+export type MatchEvent = {
+  minute: number;
+  extra?: number;
+  team: string;
+  player: string;
+  playerId?: number;
+  assist?: string;
+  assistId?: number;
+  type: 'Goal' | 'Card' | 'subst' | 'Var';
+  detail: string;
+  comments?: string;
 };
 
 export type Annotation = {
@@ -59,9 +73,21 @@ export type Match = {
   competition: Competition;
   venue?: string;
   lineup?: Lineup;
+  events?: MatchEvent[];
   annotations?: Annotation[];
   notes?: MatchNote[];
   images?: MatchImage[];
   isManual?: boolean;
   apiFixtureId?: number;
+};
+
+// Player profile built from across all matches
+export type PlayerProfile = {
+  id?: number;
+  name: string;
+  photo?: string;
+  positions: string[];
+  appearances: number;
+  matchIds: string[];
+  teams: string[];
 };
