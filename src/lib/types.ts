@@ -8,7 +8,6 @@ export type Competition = {
 export type Team = {
   name: string;
   logo?: string;
-  apiId?: number;
 };
 
 export type Player = {
