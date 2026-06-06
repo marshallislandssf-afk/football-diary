@@ -112,7 +112,7 @@ export function LineupView({ match, onUpdate }: Props) {
       }
 
       const fixture = fixtures[0];
-      const { lineup, events } = await fetchLineupAndEvents(fixture.id);
+      const { lineup, events, apiHomeTeam, apiAwayTeam } = await fetchLineupAndEvents(fixture.id);
 
       if (!lineup) {
         setError('Lineup data not available for this fixture.');
