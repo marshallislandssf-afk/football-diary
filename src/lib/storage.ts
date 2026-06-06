@@ -1,7 +1,7 @@
-import { Match } from './types';
+import { Match, PlayerProfile } from './types';
 import { INITIAL_MATCHES } from '../data/matches';
 
-const STORAGE_KEY = 'football_diary_matches';
+const STORAGE_KEY = 'football_diary_matches_v2';
 
 export function getMatches(): Match[] {
   if (typeof window === 'undefined') return INITIAL_MATCHES;
@@ -29,22 +29,47 @@ export function addMatch(match: Match): Match[] {
   return updated;
 }
 
-export function getPlayerStats(matches: Match[]): { name: string; count: number; positions: string[] }[] {
-  const map = new Map<string, { count: number; positions: Set<string> }>();
+// Build player profiles using ID as primary key where available
+export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
+  // Map keyed by player ID (if available) or name (fallback)
+  const map = new Map<string, PlayerProfile>();
+
   matches.forEach((m) => {
     if (!m.lineup) return;
-    [...(m.lineup.home || []), ...(m.lineup.away || [])].forEach((p) => {
-      // Only count players who actually played — starters and subs who came on
-      // Exclude unused substitutes
+
+    const processPlayer = (p: any, teamName: string) => {
+      // Skip unused subs — they didn't actually play
       if (p.unusedSub) return;
-      const key = p.name;
-      if (!map.has(key)) map.set(key, { count: 0, positions: new Set() });
-      const entry = map.get(key)!;
-      entry.count++;
-      if (p.position && p.position !== 'SUB') entry.positions.add(p.position);
-    });
+
+      // Use numeric ID as key if available, otherwise use name
+      const key = p.id ? `id:${p.id}` : `name:${p.name.toLowerCase().trim()}`;
+
+      if (!map.has(key)) {
+        map.set(key, {
+          id: p.id,
+          name: p.name,
+          photo: p.id ? `https://media.api-sports.io/football/players/${p.id}.png` : undefined,
+          positions: [],
+          appearances: 0,
+          matchIds: [],
+          teams: [],
+        });
+      }
+
+      const profile = map.get(key)!;
+      profile.appearances++;
+      if (!profile.matchIds.includes(m.id)) profile.matchIds.push(m.id);
+      if (p.position && p.position !== 'SUB' && !profile.positions.includes(p.position)) {
+        profile.positions.push(p.position);
+      }
+      if (!profile.teams.includes(teamName)) profile.teams.push(teamName);
+      // Keep most complete name (longer = more likely full name)
+      if (p.name.length > profile.name.length) profile.name = p.name;
+    };
+
+    [...(m.lineup.home || [])].forEach(p => processPlayer(p, m.homeTeam.name));
+    [...(m.lineup.away || [])].forEach(p => processPlayer(p, m.awayTeam.name));
   });
-  return Array.from(map.entries())
-    .map(([name, { count, positions }]) => ({ name, count, positions: Array.from(positions) }))
-    .sort((a, b) => b.count - a.count);
+
+  return Array.from(map.values()).sort((a, b) => b.appearances - a.appearances);
 }
