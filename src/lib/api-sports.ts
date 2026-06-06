@@ -6,8 +6,6 @@ export async function searchFixtures(
   date: string,
   competition: string,
   leagueId?: number,
-  homeApiId?: number,
-  awayApiId?: number,
 ): Promise<{ id: number; homeScore?: number; awayScore?: number; venue?: string }[]> {
   const params = new URLSearchParams({
     date: date.split('T')[0],
@@ -16,8 +14,6 @@ export async function searchFixtures(
     competition,
   });
   if (leagueId) params.set('leagueId', leagueId.toString());
-  if (homeApiId) params.set('homeApiId', homeApiId.toString());
-  if (awayApiId) params.set('awayApiId', awayApiId.toString());
 
   const res = await fetch(`/api/fixtures?${params}`);
   if (!res.ok) throw new Error('Fixture search failed');
