@@ -41,7 +41,8 @@ export function MatchEvents({ events, homeTeam, awayTeam }: Props) {
   const shootout = events.filter(e => e.comments?.includes('Penalty Shootout'));
 
   const renderEvent = (e: MatchEvent, i: number) => {
-    const isHome = e.team === homeTeam;
+    const isHome = e.team?.toLowerCase().includes(homeTeam.toLowerCase().split(' ')[0]) ||
+                   homeTeam.toLowerCase().includes(e.team?.toLowerCase().split(' ')[0] || '');
     const minuteStr = e.extra ? `${e.minute}+${e.extra}'` : `${e.minute}'`;
     const isMissed = e.detail === 'Missed Penalty';
 
