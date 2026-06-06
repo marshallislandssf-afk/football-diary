@@ -185,3 +185,4 @@ export function LineupView({ match, onUpdate }: Props) {
       {error && <p className="text-xs text-[#f85149] mt-2">{error}</p>}
     </div>
   );
+}
