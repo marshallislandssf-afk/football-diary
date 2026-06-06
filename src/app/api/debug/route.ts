@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -6,24 +5,14 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  // World Cup Final events — we know this fixture ID works
-  const r1 = await fetch(
-    'https://v3.football.api-sports.io/fixtures/events?fixture=979139',
-    { headers }
-  );
+  const r1 = await fetch('https://v3.football.api-sports.io/teams?search=Wisla+Krakow', { headers });
   const d1 = await r1.json();
 
+  const r2 = await fetch('https://v3.football.api-sports.io/teams?search=Chrobry', { headers });
+  const d2 = await r2.json();
+
   return NextResponse.json({
-    totalEvents: d1.results,
-    allEvents: d1.response?.map((e: any) => ({
-      minute: e.time?.elapsed,
-      extra: e.time?.extra,
-      team: e.team?.name,
-      player: e.player?.name,
-      assist: e.assist?.name,
-      type: e.type,
-      detail: e.detail,
-      comments: e.comments,
-    }))
+    wisla: d1.response?.slice(0,5).map((t:any) => ({ id: t.team.id, name: t.team.name, country: t.team.country })),
+    chrobry: d2.response?.slice(0,5).map((t:any) => ({ id: t.team.id, name: t.team.name, country: t.team.country })),
   });
 }
