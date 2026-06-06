@@ -86,6 +86,8 @@ export async function GET(req: NextRequest) {
         away: lineupData.response[1] ? parseTeam(lineupData.response[1]) : [],
       },
       events,
+      apiHomeTeam: lineupData.response[0]?.team?.name,
+      apiAwayTeam: lineupData.response[1]?.team?.name,
     });
 
   } catch (e: any) {
