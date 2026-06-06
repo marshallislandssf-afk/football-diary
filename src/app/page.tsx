@@ -83,8 +83,8 @@ export default function Home() {
     }
   };
 
-  const countries = useMemo(() => [...new Set(matches.map(m => m.competition.country))].sort(), [matches]);
-  const years = useMemo(() => [...new Set(matches.map(m => new Date(m.date).getFullYear().toString()))].sort((a, b) => parseInt(b) - parseInt(a)), [matches]);
+  const countries = useMemo(() => Array.from(new Set(matches.map(m => m.competition.country))).sort(), [matches]);
+  const years = useMemo(() => Array.from(new Set(matches.map(m => new Date(m.date).getFullYear().toString()))).sort((a, b) => parseInt(b) - parseInt(a)), [matches]);
 
   const sortedMatches = useMemo(() => {
     return [...matches]
