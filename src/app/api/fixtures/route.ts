@@ -32,6 +32,7 @@ const LEAGUE_MAP: Record<string, { id: number; calendarYear?: boolean }> = {
   'Copa Libertadores': { id: 13, calendarYear: true },
   'CONMEBOL Sudamericana': { id: 11, calendarYear: true },
   'UEFA Europa Conference League Qualifying': { id: 848 },
+  'Emirates Cup': { id: 937 },
 };
 
 function getSeason(competition: string, date: string): number {
@@ -48,9 +49,11 @@ function getSeason(competition: string, date: string): number {
     return year;
   }
   if (competition.includes('Qualification')) {
-    if (year === 2025 || year === 2024) return 2024;
-    if (year === 2022 || year === 2021) return 2021;
-    return year;
+    // WC qualifying cycles: API-Sports uses the cycle start year
+    // 2026 cycle: 2024-2025 → season 2024
+    // 2022 cycle: 2020-2021 → season 2020
+    // 2018 cycle: 2016-2017 → season 2016
+    return year <= 2025 ? year - 1 : year;
   }
   return month >= 7 ? year : year - 1;
 }
@@ -136,19 +139,17 @@ export async function GET(req: NextRequest) {
 
     // Filter by team names
     if (home && away) {
-      const h = home.toLowerCase();
-      const a = away.toLowerCase();
       const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const h = normalize(home);
+      const a = normalize(away);
 
       const strict = fixtures.filter((f: any) => {
         const fh = normalize(f.teams?.home?.name || '');
         const fa = normalize(f.teams?.away?.name || '');
-        const nh = normalize(h);
-        const na = normalize(a);
-        const homeMatch = fh.includes(nh) || nh.includes(fh) ||
-          nh.split(' ').filter((w: string) => w.length > 3).every((w: string) => fh.includes(w));
-        const awayMatch = fa.includes(na) || na.includes(fa) ||
-          na.split(' ').filter((w: string) => w.length > 3).every((w: string) => fa.includes(w));
+        const homeMatch = fh.includes(h) || h.includes(fh) ||
+          h.split(' ').filter((w: string) => w.length > 3).every((w: string) => fh.includes(w));
+        const awayMatch = fa.includes(a) || a.includes(fa) ||
+          a.split(' ').filter((w: string) => w.length > 3).every((w: string) => fa.includes(w));
         return homeMatch && awayMatch;
       });
 
@@ -182,3 +183,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
