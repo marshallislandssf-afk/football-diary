@@ -5,43 +5,38 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  const results: any = {};
-
-  // Try all plausible seasons for WC Qual Europe (league 32)
-  for (const season of [2023, 2024, 2025, 2026]) {
-    const r = await fetch(
-      `https://v3.football.api-sports.io/fixtures?league=32&season=${season}&date=2025-11-18`,
-      { headers }
-    );
-    const d = await r.json();
-    results[`season_${season}`] = {
-      count: d.results,
-      errors: d.errors,
-      fixtures: d.response?.map((f: any) => ({
-        home: f.teams.home.name,
-        away: f.teams.away.name,
-      }))
-    };
-  }
-
-  // Also search all fixtures on that date without league filter
-  const r2 = await fetch(
-    `https://v3.football.api-sports.io/fixtures?date=2025-11-18&season=2025`,
+  // Get the Wales vs FYR Macedonia fixture details
+  const r1 = await fetch(
+    'https://v3.football.api-sports.io/fixtures?league=32&season=2024&date=2025-11-18',
     { headers }
   );
-  const d2 = await r2.json();
-  const wales = d2.response?.filter((f: any) =>
-    f.teams?.home?.name?.toLowerCase().includes('wales') ||
-    f.teams?.away?.name?.toLowerCase().includes('wales') ||
-    f.teams?.home?.name?.toLowerCase().includes('cymru') ||
-    f.teams?.away?.name?.toLowerCase().includes('cymru')
-  );
-  results.walesAnyLeague = wales?.map((f: any) => ({
-    home: f.teams.home.name,
-    away: f.teams.away.name,
-    league: f.league.name,
-    leagueId: f.league.id,
-  }));
+  const d1 = await r1.json();
 
-  return NextResponse.json(results);
+  const walesFixture = d1.response?.find((f: any) =>
+    f.teams?.home?.name === 'Wales'
+  );
+
+  // Get Wales team ID from fixture and fetch their squad
+  const walesTeamId = walesFixture?.teams?.home?.id;
+  let walesSquad = null;
+  if (walesTeamId) {
+    const r2 = await fetch(
+      `https://v3.football.api-sports.io/players?team=${walesTeamId}&season=2024`,
+      { headers }
+    );
+    const d2 = await r2.json();
+    walesSquad = d2.response?.slice(0, 5).map((p: any) => ({ id: p.player.id, name: p.player.name }));
+  }
+
+  return NextResponse.json({
+    walesFixture: walesFixture ? {
+      fixtureId: walesFixture.fixture.id,
+      homeTeam: walesFixture.teams.home.name,
+      homeTeamId: walesFixture.teams.home.id,
+      awayTeam: walesFixture.teams.away.name,
+      awayTeamId: walesFixture.teams.away.id,
+    } : null,
+    walesTeamId,
+    walesSquadSample: walesSquad,
+  });
 }
