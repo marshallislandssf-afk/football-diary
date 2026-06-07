@@ -11,6 +11,7 @@ import clsx from 'clsx';
 interface Props {
   match: Match;
   onUpdate: (id: string, updates: Partial<Match>) => void;
+  allMatches?: Match[];
 }
 
 // Mini player profile modal shown when clicking a player in the lineup
