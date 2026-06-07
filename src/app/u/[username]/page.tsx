@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { notFound } from 'next/navigation';
 import { PublicProfileClient } from './PublicProfileClient';
 
@@ -7,9 +7,8 @@ export default async function PublicProfilePage({
 }: {
   params: { username: string };
 }) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  // Find the user profile by username
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
@@ -21,7 +20,6 @@ export default async function PublicProfilePage({
     notFound();
   }
 
-  // Get their public matches
   const { data: matches } = await supabase
     .from('matches')
     .select('*')
