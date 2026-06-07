@@ -175,15 +175,15 @@ function TeamLineupEditor({ teamName, teamApiId, players, onPlayersChange, seaso
     ? squad.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
     : squad;
 
-  const addPlayer = (searched: SearchedPlayer, isSub: boolean) => {
-    // Don't add duplicates
+  const addPlayer = (searched: SearchedPlayer, role: 'starter' | 'sub' | 'unused') => {
     if (players.find(p => p.id === searched.id || p.name === searched.name)) return;
     const newPlayer: Player = {
       id: searched.id || undefined,
       name: searched.name,
-      position: searched.position || (isSub ? 'SUB' : undefined),
-      isStarter: !isSub,
-      unusedSub: isSub,
+      position: searched.position || (role === 'starter' ? undefined : 'SUB'),
+      isStarter: role === 'starter',
+      cameOn: role === 'sub',
+      unusedSub: role === 'unused',
     };
     onPlayersChange([...players, newPlayer]);
   };
