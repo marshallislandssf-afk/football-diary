@@ -196,28 +196,12 @@ function TeamLineup({
   );
 }
 
-export function LineupView({ match, onUpdate }: Props) {
+export function LineupView({ match, onUpdate, allMatches = [] }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
-  const [allMatches, setAllMatches] = useState<Match[]>([match]);
-  const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
 
-  const hasLineup = match.lineup && (match.lineup.home.length > 0 || match.lineup.away.length > 0);
-
-  // Load all matches for profile context
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('football_diary_matches_v2');
-        if (stored) {
-          const matches = JSON.parse(stored);
-          setAllMatches(matches);
-          setProfiles(getPlayerProfiles(matches));
-        }
-      } catch {}
-    }
-  });
+  const profiles = useMemo(() => getPlayerProfiles(allMatches), [allMatches]);
 
   const fetchFromApi = async () => {
     setLoading(true);
