@@ -36,7 +36,7 @@ function compColor(name: string) {
   return COMPETITION_COLORS[name] || '#44444499';
 }
 
-export function MatchCard({ match, onUpdate, onDelete }: Props) {
+export function MatchCard({ match, onUpdate, onDelete, allMatches }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'events' | 'lineup' | 'notes'>('events');
   const [editing, setEditing] = useState(false);
