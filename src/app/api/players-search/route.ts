@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const data1 = await res1.json();
   let players = data1.response || [];
 
-  // Fetch remaining pages if any
+  // Fetch remaining pages if any (max 4 pages = 100 players)
   const totalPages = data1.paging?.total || 1;
   for (let page = 2; page <= Math.min(totalPages, 4); page++) {
     const res = await fetch(
@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
     if (data.response?.length) players = [...players, ...data.response];
   }
 
-  // Filter by name if query provided
- if (query.length >= 1) {
+  // Filter by name with accent normalisation
+  if (query.length >= 1) {
     const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const q = normalize(query);
     players = players.filter((p: any) =>
