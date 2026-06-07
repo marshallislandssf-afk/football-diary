@@ -5,20 +5,43 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  // Try searching for Harry Wilson with different seasons
-  const r1 = await fetch('https://v3.football.api-sports.io/players?search=Harry+Wilson&season=2024', { headers });
-  const d1 = await r1.json();
+  const results: any = {};
 
-  const r2 = await fetch('https://v3.football.api-sports.io/players?search=Karl+Darlow&season=2024', { headers });
+  // Try all plausible seasons for WC Qual Europe (league 32)
+  for (const season of [2023, 2024, 2025, 2026]) {
+    const r = await fetch(
+      `https://v3.football.api-sports.io/fixtures?league=32&season=${season}&date=2025-11-18`,
+      { headers }
+    );
+    const d = await r.json();
+    results[`season_${season}`] = {
+      count: d.results,
+      errors: d.errors,
+      fixtures: d.response?.map((f: any) => ({
+        home: f.teams.home.name,
+        away: f.teams.away.name,
+      }))
+    };
+  }
+
+  // Also search all fixtures on that date without league filter
+  const r2 = await fetch(
+    `https://v3.football.api-sports.io/fixtures?date=2025-11-18&season=2025`,
+    { headers }
+  );
   const d2 = await r2.json();
+  const wales = d2.response?.filter((f: any) =>
+    f.teams?.home?.name?.toLowerCase().includes('wales') ||
+    f.teams?.away?.name?.toLowerCase().includes('wales') ||
+    f.teams?.home?.name?.toLowerCase().includes('cymru') ||
+    f.teams?.away?.name?.toLowerCase().includes('cymru')
+  );
+  results.walesAnyLeague = wales?.map((f: any) => ({
+    home: f.teams.home.name,
+    away: f.teams.away.name,
+    league: f.league.name,
+    leagueId: f.league.id,
+  }));
 
-  // Try without season
-  const r3 = await fetch('https://v3.football.api-sports.io/players?search=Harry+Wilson', { headers });
-  const d3 = await r3.json();
-
-  return NextResponse.json({
-    harryWilson2024: { count: d1.results, errors: d1.errors, sample: d1.response?.slice(0,3).map((p: any) => ({ id: p.player.id, name: p.player.name, team: p.statistics?.[0]?.team?.name })) },
-    karlDarlow2024: { count: d2.results, errors: d2.errors, sample: d2.response?.slice(0,3).map((p: any) => ({ id: p.player.id, name: p.player.name, team: p.statistics?.[0]?.team?.name })) },
-    harryWilsonNoSeason: { count: d3.results, errors: d3.errors },
-  });
+  return NextResponse.json(results);
 }
