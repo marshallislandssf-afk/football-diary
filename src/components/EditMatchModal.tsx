@@ -412,6 +412,7 @@ export function EditMatchModal({ match, onSave, onClose }: Props) {
               <div className="flex gap-4">
                 <TeamLineupEditor
                   teamName={form.homeTeamName}
+                  teamApiId={match.homeTeam.apiId}
                   players={homePlayers}
                   onPlayersChange={setHomePlayers}
                   season={season}
@@ -419,6 +420,7 @@ export function EditMatchModal({ match, onSave, onClose }: Props) {
                 <div className="w-px bg-[#30363d]" />
                 <TeamLineupEditor
                   teamName={form.awayTeamName}
+                  teamApiId={match.awayTeam.apiId}
                   players={awayPlayers}
                   onPlayersChange={setAwayPlayers}
                   season={season}
