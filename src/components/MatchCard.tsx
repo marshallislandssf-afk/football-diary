@@ -192,7 +192,7 @@ export function MatchCard({ match, onUpdate, onDelete }: Props) {
             )}
             {activeTab === 'lineup' && (
               <div className="p-4">
-                <LineupView match={match} onUpdate={onUpdate} />
+                <LineupView match={match} onUpdate={onUpdate} allMatches={allMatches} />
               </div>
             )}
             {activeTab === 'notes' && (
