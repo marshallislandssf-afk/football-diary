@@ -28,11 +28,10 @@ export const INITIAL_MATCHES: Match[] = [
   {
     id: 'wales-2025',
     date: '2025-11-18',
-    homeTeam: { name: 'Wales' },
-    awayTeam: { name: 'North Macedonia' },
+    homeTeam: { name: 'Wales', apiId: 767 },
+    awayTeam: { name: 'FYR Macedonia', apiId: 1105 },
     competition: { name: 'WC Qualification Europe', country: 'International', leagueId: 32 },
     venue: 'Cardiff City Stadium',
-    isManual: true,
   },
   {
     id: 'turks-caicos-2025',
