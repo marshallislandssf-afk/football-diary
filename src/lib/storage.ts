@@ -44,22 +44,40 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
 
       const allPlayers = [...(m.lineup!.home || []), ...(m.lineup!.away || [])];
 
+      // 1. Match by player ID
       let lineupPlayer = e.playerId
         ? allPlayers.find(p => p.id === e.playerId)
         : undefined;
 
+      // 2. Exact normalised name match
       if (!lineupPlayer) {
         lineupPlayer = allPlayers.find(p => norm(p.name) === norm(e.player || ''));
       }
 
+      // 3. Last name match — only skip if ambiguous surname
       if (!lineupPlayer) {
-        const lastName = norm(e.player || '').split(' ').pop() || '';
-        const playersWithSameSurname = allPlayers.filter(p =>
-          norm(p.name).split(' ').pop() === lastName
-        );
-        if (playersWithSameSurname.length === 1) {
-          lineupPlayer = playersWithSameSurname[0];
+        const eventLastName = norm(e.player || '').split(' ').pop() || '';
+        if (eventLastName.length > 2) {
+          const matches = allPlayers.filter(p =>
+            norm(p.name).split(' ').pop() === eventLastName
+          );
+          if (matches.length === 1) lineupPlayer = matches[0];
         }
+      }
+
+      // 4. Loose partial match — event name contains player last name or vice versa
+      if (!lineupPlayer) {
+        const eventNorm = norm(e.player || '');
+        lineupPlayer = allPlayers.find(p => {
+          const playerNorm = norm(p.name);
+          const playerLast = playerNorm.split(' ').pop() || '';
+          const eventLast = eventNorm.split(' ').pop() || '';
+          return playerLast.length > 3 && eventLast.length > 3 && (
+            playerNorm.includes(eventNorm) ||
+            eventNorm.includes(playerNorm) ||
+            playerLast === eventLast
+          );
+        });
       }
 
       if (!lineupPlayer) return;
@@ -72,7 +90,6 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
         map.get(key)!.goals++;
       }
     });
-  });
 
   return Array.from(map.values()).sort((a, b) => b.appearances - a.appearances);
 }
