@@ -234,7 +234,7 @@ export default function Home() {
                         </div>
                         <div className="space-y-2">
                           {yearMatches.map(match => (
-                            <MatchCard key={match.id} match={match} onUpdate={handleUpdate} onDelete={handleDelete} />
+                            <MatchCard key={match.id} match={match} onUpdate={handleUpdate} onDelete={handleDelete} allMatches={matches} />
                           ))}
                         </div>
                       </div>
