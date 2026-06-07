@@ -91,4 +91,6 @@ export type PlayerProfile = {
   goals: number;
   matchIds: string[];
   teams: string[];
+  firstSeen?: string;
+  lastSeen?: string;
 };
