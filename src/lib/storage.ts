@@ -44,21 +44,42 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
       if (!e.player) return;
 
       const allPlayers = [...(m.lineup!.home || []), ...(m.lineup!.away || [])];
-      const lineupPlayer = allPlayers.find(p =>
-        p.name === e.player ||
-        p.name?.toLowerCase().includes((e.player || '').toLowerCase().split(' ').pop() || '') ||
-        (e.player || '').toLowerCase().includes(p.name?.toLowerCase().split(' ').pop() || '')
-      );
 
-      const key = lineupPlayer?.id
+      // Normalize for comparison
+      const norm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      // 1. Match by player ID (most reliable)
+      let lineupPlayer = e.playerId
+        ? allPlayers.find(p => p.id === e.playerId)
+        : undefined;
+
+      // 2. Exact name match
+      if (!lineupPlayer) {
+        lineupPlayer = allPlayers.find(p => norm(p.name) === norm(e.player || ''));
+      }
+
+      // 3. Partial match — but check for surname ambiguity first
+      if (!lineupPlayer) {
+        const lastName = norm(e.player || '').split(' ').pop() || '';
+        const playersWithSameSurname = allPlayers.filter(p =>
+          norm(p.name).split(' ').pop() === lastName
+        );
+        // Only use partial match if surname is unambiguous in this lineup
+        if (playersWithSameSurname.length === 1) {
+          lineupPlayer = playersWithSameSurname[0];
+        }
+      }
+
+      if (!lineupPlayer) return;
+
+      const key = lineupPlayer.id
         ? `id:${lineupPlayer.id}`
-        : `name:${(e.player || '').toLowerCase().trim()}`;
+        : `name:${norm(lineupPlayer.name)}`;
 
       if (map.has(key)) {
         map.get(key)!.goals++;
       }
     });
-  });
 
   return Array.from(map.values()).sort((a, b) => b.appearances - a.appearances);
 }
