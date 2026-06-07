@@ -227,18 +227,25 @@ function TeamLineupEditor({ teamName, teamApiId, players, onPlayersChange, seaso
                   {p.position && <span className="text-[10px] text-[#484f58]">{p.position}</span>}
                   <div className="flex gap-1 flex-shrink-0">
                     <button
-                      onClick={() => addPlayer(p, false)}
+                      onClick={() => addPlayer(p, 'starter')}
                       disabled={isAdded(p)}
                       className="text-[10px] px-1.5 py-0.5 rounded bg-[#238636]/20 text-[#3fb950] hover:bg-[#238636]/40 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       ST
                     </button>
                     <button
-                      onClick={() => addPlayer(p, true)}
+                      onClick={() => addPlayer(p, 'sub')}
                       disabled={isAdded(p)}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-[#30363d] text-[#8b949e] hover:bg-[#484f58] disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-[#58a6ff]/20 text-[#58a6ff] hover:bg-[#58a6ff]/40 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       SUB
+                    </button>
+                    <button
+                      onClick={() => addPlayer(p, 'unused')}
+                      disabled={isAdded(p)}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-[#30363d] text-[#484f58] hover:bg-[#484f58]/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      N/P
                     </button>
                   </div>
                 </div>
