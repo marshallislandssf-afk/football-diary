@@ -16,24 +16,32 @@ export async function GET(req: NextRequest) {
   const normalize = (s: string) =>
     (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  // Try /players/squads first — returns full registered squad without needing stats
-  const squadRes = await fetch(
-    `https://v3.football.api-sports.io/players/squads?team=${teamId}`,
-    { headers }
-  );
-  const squadData = await squadRes.json();
-  let players = squadData.response?.[0]?.players || [];
+  const currentYear = new Date().getFullYear();
+  const seasonYear = parseInt(season);
+  const isHistorical = currentYear - seasonYear > 2;
 
-  // Fall back to /players endpoint if squads returns nothing
+  let players: any[] = [];
+
+  if (!isHistorical) {
+    // Recent matches — use squads endpoint for full current registered squad
+    const squadRes = await fetch(
+      `https://v3.football.api-sports.io/players/squads?team=${teamId}`,
+      { headers }
+    );
+    const squadData = await squadRes.json();
+    players = squadData.response?.[0]?.players || [];
+  }
+
+  // Historical matches, or if squads returned nothing — use paginated players endpoint
   if (players.length === 0) {
-    const playersRes = await fetch(
+    const res1 = await fetch(
       `https://v3.football.api-sports.io/players?team=${teamId}&season=${season}&page=1`,
       { headers }
     );
-    const playersData = await playersRes.json();
-    let allPlayers = playersData.response || [];
+    const data1 = await res1.json();
+    let allPlayers = data1.response || [];
 
-    const totalPages = playersData.paging?.total || 1;
+    const totalPages = data1.paging?.total || 1;
     for (let page = 2; page <= Math.min(totalPages, 4); page++) {
       const res = await fetch(
         `https://v3.football.api-sports.io/players?team=${teamId}&season=${season}&page=${page}`,
@@ -49,6 +57,7 @@ export async function GET(req: NextRequest) {
       nationality: p.player.nationality,
       photo: p.player.photo,
       position: p.statistics?.[0]?.games?.position,
+      team: p.statistics?.[0]?.team?.name,
     }));
   }
 
