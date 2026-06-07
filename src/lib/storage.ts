@@ -78,8 +78,7 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
 
       if (map.has(key)) {
         map.get(key)!.goals++;
-      }
-    });
-
+     });
+  });
   return Array.from(map.values()).sort((a, b) => b.appearances - a.appearances);
 }
