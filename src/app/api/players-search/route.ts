@@ -13,16 +13,27 @@ export async function GET(req: NextRequest) {
 
   const headers = { 'x-apisports-key': apiKey };
 
-  const res = await fetch(
+  // Fetch page 1
+  const res1 = await fetch(
     `https://v3.football.api-sports.io/players?team=${teamId}&season=${season}&page=1`,
     { headers }
   );
-  const data = await res.json();
+  const data1 = await res1.json();
+  let players = data1.response || [];
 
-  let players = data.response || [];
+  // Fetch remaining pages if any
+  const totalPages = data1.paging?.total || 1;
+  for (let page = 2; page <= Math.min(totalPages, 4); page++) {
+    const res = await fetch(
+      `https://v3.football.api-sports.io/players?team=${teamId}&season=${season}&page=${page}`,
+      { headers }
+    );
+    const data = await res.json();
+    if (data.response?.length) players = [...players, ...data.response];
+  }
 
   // Filter by name if query provided
-  if (query.length >= 2) {
+  if (query.length >= 1) {
     const q = query.toLowerCase();
     players = players.filter((p: any) =>
       p.player.name?.toLowerCase().includes(q) ||
@@ -32,7 +43,7 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({
-    players: players.slice(0, 20).map((p: any) => ({
+    players: players.slice(0, 50).map((p: any) => ({
       id: p.player.id,
       name: p.player.name,
       nationality: p.player.nationality,
