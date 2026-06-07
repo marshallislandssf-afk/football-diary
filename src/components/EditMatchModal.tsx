@@ -146,17 +146,38 @@ function PlayerItem({ player, onRemove, onPositionChange }: {
   );
 }
 
-function TeamLineupEditor({ teamName, players, onPlayersChange, season }: {
+function TeamLineupEditor({ teamName, teamApiId, players, onPlayersChange, season }: {
   teamName: string;
+  teamApiId?: number;
   players: Player[];
   onPlayersChange: (players: Player[]) => void;
   season: string;
 }) {
-  const starters = players.filter(p => !p.unusedSub && !p.cameOn);
-  const subs = players.filter(p => p.unusedSub || p.cameOn);
+  const starters = players.filter(p => p.isStarter);
+  const subs = players.filter(p => !p.isStarter);
   const [showSubs, setShowSubs] = useState(true);
+  const [squad, setSquad] = useState<SearchedPlayer[]>([]);
+  const [squadLoading, setSquadLoading] = useState(false);
+  const [query, setQuery] = useState('');
+
+  // Load squad on mount if we have a team ID
+  useEffect(() => {
+    if (!teamApiId) return;
+    setSquadLoading(true);
+    fetch(`/api/players-search?teamId=${teamApiId}&season=${season}`)
+      .then(r => r.json())
+      .then(d => setSquad(d.players || []))
+      .catch(() => {})
+      .finally(() => setSquadLoading(false));
+  }, [teamApiId, season]);
+
+  const filteredSquad = query.length >= 1
+    ? squad.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
+    : squad;
 
   const addPlayer = (searched: SearchedPlayer, isSub: boolean) => {
+    // Don't add duplicates
+    if (players.find(p => p.id === searched.id || p.name === searched.name)) return;
     const newPlayer: Player = {
       id: searched.id || undefined,
       name: searched.name,
@@ -167,65 +188,93 @@ function TeamLineupEditor({ teamName, players, onPlayersChange, season }: {
     onPlayersChange([...players, newPlayer]);
   };
 
-  const removePlayer = (index: number) => {
-    const all = [...starters, ...subs];
-    const toRemove = all[index];
-    onPlayersChange(players.filter(p => p !== toRemove));
+  const removePlayer = (player: Player) => {
+    onPlayersChange(players.filter(p => p !== player));
   };
 
   const updatePosition = (player: Player, pos: string) => {
     onPlayersChange(players.map(p => p === player ? { ...p, position: pos } : p));
   };
 
+  const isAdded = (p: SearchedPlayer) => players.some(pl => pl.id === p.id || pl.name === p.name);
+
   return (
     <div className="flex-1 min-w-0">
       <h4 className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2 truncate">{teamName}</h4>
 
-      {/* Starters */}
-      <div className="mb-2">
-        <div className="text-[10px] text-[#484f58] uppercase tracking-wider mb-1">Starters ({starters.length})</div>
-        {starters.map((p, i) => (
-          <PlayerItem
-            key={p.id || `${p.name}-${i}`}
-            player={p}
-            onRemove={() => removePlayer(i)}
-            onPositionChange={pos => updatePosition(p, pos)}
-          />
-        ))}
-        <PlayerSearchInput
-          onSelect={p => addPlayer(p, false)}
-          season={season}
-          placeholder="Add starter..."
-        />
-      </div>
-
-      {/* Subs */}
-      <div>
-        <button
-          onClick={() => setShowSubs(v => !v)}
-          className="flex items-center gap-1 text-[10px] text-[#484f58] uppercase tracking-wider mb-1 hover:text-[#8b949e]"
-        >
-          {showSubs ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-          Substitutes ({subs.length})
-        </button>
-        {showSubs && (
-          <>
-            {subs.map((p, i) => (
-              <PlayerItem
-                key={p.id || `${p.name}-sub-${i}`}
-                player={p}
-                onRemove={() => removePlayer(starters.length + i)}
-                onPositionChange={pos => updatePosition(p, pos)}
-              />
-            ))}
-            <PlayerSearchInput
-              onSelect={p => addPlayer(p, true)}
-              season={season}
-              placeholder="Add substitute..."
+      {/* Squad picker */}
+      {teamApiId ? (
+        <div className="mb-3">
+          <div className="relative mb-1.5">
+            <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#484f58]" />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={squadLoading ? 'Loading squad...' : 'Filter squad...'}
+              disabled={squadLoading}
+              className="w-full bg-[#161b22] border border-[#30363d] rounded-lg pl-7 pr-3 py-1.5 text-xs text-[#e6edf3] focus:outline-none focus:border-[#58a6ff] placeholder-[#484f58] disabled:opacity-50"
             />
-          </>
-        )}
-      </div>
+          </div>
+          {filteredSquad.length > 0 && (
+            <div className="bg-[#161b22] border border-[#30363d] rounded-lg max-h-36 overflow-y-auto mb-2">
+              {filteredSquad.map(p => (
+                <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 border-b border-[#21262d] last:border-0">
+                  {p.photo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photo} alt={p.name} className="w-5 h-5 rounded-full object-cover bg-[#30363d] flex-shrink-0" />
+                  )}
+                  <span className="flex-1 text-xs text-[#e6edf3] truncate">{p.name}</span>
+                  {p.position && <span className="text-[10px] text-[#484f58]">{p.position}</span>}
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => addPlayer(p, false)}
+                      disabled={isAdded(p)}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-[#238636]/20 text-[#3fb950] hover:bg-[#238636]/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ST
+                    </button>
+                    <button
+                      onClick={() => addPlayer(p, true)}
+                      disabled={isAdded(p)}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-[#30363d] text-[#8b949e] hover:bg-[#484f58] disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      SUB
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-3">
+          <PlayerSearchInput onSelect={p => addPlayer(p, false)} season={season} placeholder="Search player to add..." />
+          <p className="text-[10px] text-[#484f58] mt-1">No team ID — searching all leagues</p>
+        </div>
+      )}
+
+      {/* Selected starters */}
+      {starters.length > 0 && (
+        <div className="mb-2">
+          <div className="text-[10px] text-[#484f58] uppercase tracking-wider mb-1">Starters ({starters.length})</div>
+          {starters.map((p, i) => (
+            <PlayerItem key={p.id || `${p.name}-${i}`} player={p} onRemove={() => removePlayer(p)} onPositionChange={pos => updatePosition(p, pos)} />
+          ))}
+        </div>
+      )}
+
+      {/* Selected subs */}
+      {subs.length > 0 && (
+        <div>
+          <button onClick={() => setShowSubs(v => !v)} className="flex items-center gap-1 text-[10px] text-[#484f58] uppercase tracking-wider mb-1 hover:text-[#8b949e]">
+            {showSubs ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            Subs ({subs.length})
+          </button>
+          {showSubs && subs.map((p, i) => (
+            <PlayerItem key={p.id || `${p.name}-sub-${i}`} player={p} onRemove={() => removePlayer(p)} onPositionChange={pos => updatePosition(p, pos)} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
