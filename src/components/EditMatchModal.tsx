@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Match, Annotation, Player, Lineup } from '@/lib/types';
 import { X, Plus, Trash2, Search, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
 
 function genId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
