@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Match, Player, PlayerProfile } from '@/lib/types';
 import { searchFixtures, fetchLineupAndEvents } from '@/lib/api-sports';
 import { RefreshCw, AlertCircle, ChevronDown, ChevronUp, X, Calendar } from 'lucide-react';
