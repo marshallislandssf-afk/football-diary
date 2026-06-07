@@ -5,38 +5,33 @@ export async function GET() {
   if (!apiKey) return NextResponse.json({ error: 'No key' });
   const headers = { 'x-apisports-key': apiKey };
 
-  // Get the Wales vs FYR Macedonia fixture details
+  // Try players/squads endpoint - returns registered squad without needing stats
   const r1 = await fetch(
-    'https://v3.football.api-sports.io/fixtures?league=32&season=2024&date=2025-11-18',
+    'https://v3.football.api-sports.io/players/squads?team=1105',
     { headers }
   );
   const d1 = await r1.json();
 
-  const walesFixture = d1.response?.find((f: any) =>
-    f.teams?.home?.name === 'Wales'
+  // Also try players endpoint with different seasons
+  const r2 = await fetch(
+    'https://v3.football.api-sports.io/players?team=1105&season=2024',
+    { headers }
   );
+  const d2 = await r2.json();
 
-  // Get Wales team ID from fixture and fetch their squad
-  const walesTeamId = walesFixture?.teams?.home?.id;
-  let walesSquad = null;
-  if (walesTeamId) {
-    const r2 = await fetch(
-      `https://v3.football.api-sports.io/players?team=${walesTeamId}&season=2024`,
-      { headers }
-    );
-    const d2 = await r2.json();
-    walesSquad = d2.response?.slice(0, 5).map((p: any) => ({ id: p.player.id, name: p.player.name }));
-  }
+  // Search for Miovski directly with his club team
+  const r3 = await fetch(
+    'https://v3.football.api-sports.io/players?search=Miovski&season=2024&league=39',
+    { headers }
+  );
+  const d3 = await r3.json();
 
   return NextResponse.json({
-    walesFixture: walesFixture ? {
-      fixtureId: walesFixture.fixture.id,
-      homeTeam: walesFixture.teams.home.name,
-      homeTeamId: walesFixture.teams.home.id,
-      awayTeam: walesFixture.teams.away.name,
-      awayTeamId: walesFixture.teams.away.id,
-    } : null,
-    walesTeamId,
-    walesSquadSample: walesSquad,
+    squadEndpoint: {
+      count: d1.results,
+      players: d1.response?.[0]?.players?.slice(0, 10).map((p: any) => ({ id: p.id, name: p.name, position: p.position })),
+    },
+    playersEndpoint: { count: d2.results, errors: d2.errors },
+    miovskiSearch: d3.response?.slice(0, 3).map((p: any) => ({ id: p.player.id, name: p.player.name, team: p.statistics?.[0]?.team?.name })),
   });
 }
