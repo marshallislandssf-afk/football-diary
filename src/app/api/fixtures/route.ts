@@ -48,7 +48,8 @@ function getSeason(competition: string, date: string): number {
     return year;
   }
   if (competition.includes('Qualification')) {
-    if (year === 2025 || year === 2024) return 2025;
+    if (year === 2025 || year === 2024) return 2024;
+    if (year === 2022 || year === 2021) return 2021;
     return year;
   }
   return month >= 7 ? year : year - 1;
