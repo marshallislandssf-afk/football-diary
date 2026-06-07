@@ -33,6 +33,7 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
       }
       if (!profile.teams.includes(teamName)) profile.teams.push(teamName);
       if (p.name.length > profile.name.length) profile.name = p.name;
+      // Track first and last seen dates
       if (!profile.firstSeen || m.date < profile.firstSeen) profile.firstSeen = m.date;
       if (!profile.lastSeen || m.date > profile.lastSeen) profile.lastSeen = m.date;
     };
@@ -40,6 +41,7 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
     [...(m.lineup.home || [])].forEach(p => processPlayer(p, m.homeTeam.name));
     [...(m.lineup.away || [])].forEach(p => processPlayer(p, m.awayTeam.name));
 
+    // Count goals from events
     (m.events || []).forEach((e) => {
       if (e.type !== 'Goal') return;
       if (e.detail === 'Missed Penalty') return;
@@ -48,20 +50,28 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
 
       const allPlayers = [...(m.lineup!.home || []), ...(m.lineup!.away || [])];
 
-      let lineupPlayer = e.playerId ? allPlayers.find(p => p.id === e.playerId) : undefined;
+      // 1. Match by player ID
+      let lineupPlayer = e.playerId
+        ? allPlayers.find(p => p.id === e.playerId)
+        : undefined;
 
+      // 2. Exact normalised name match
       if (!lineupPlayer) {
         lineupPlayer = allPlayers.find(p => norm(p.name) === norm(e.player || ''));
       }
 
+      // 3. Last name match — only if unambiguous
       if (!lineupPlayer) {
         const eventLastName = norm(e.player || '').split(' ').pop() || '';
         if (eventLastName.length > 2) {
-          const sameSurname = allPlayers.filter(p => norm(p.name).split(' ').pop() === eventLastName);
+          const sameSurname = allPlayers.filter(p =>
+            norm(p.name).split(' ').pop() === eventLastName
+          );
           if (sameSurname.length === 1) lineupPlayer = sameSurname[0];
         }
       }
 
+      // 4. Loose partial match
       if (!lineupPlayer) {
         const eventNorm = norm(e.player || '');
         const eventLast = eventNorm.split(' ').pop() || '';
@@ -69,15 +79,22 @@ export function getPlayerProfiles(matches: Match[]): PlayerProfile[] {
           const playerNorm = norm(p.name);
           const playerLast = playerNorm.split(' ').pop() || '';
           return playerLast.length > 3 && eventLast.length > 3 && (
-            playerNorm.includes(eventNorm) || eventNorm.includes(playerNorm) || playerLast === eventLast
+            playerNorm.includes(eventNorm) ||
+            eventNorm.includes(playerNorm) ||
+            playerLast === eventLast
           );
         });
       }
 
       if (!lineupPlayer) return;
 
-      const key = lineupPlayer.id ? `id:${lineupPlayer.id}` : `name:${norm(lineupPlayer.name)}`;
-      if (map.has(key)) map.get(key)!.goals++;
+      const key = lineupPlayer.id
+        ? `id:${lineupPlayer.id}`
+        : `name:${norm(lineupPlayer.name)}`;
+
+      if (map.has(key)) {
+        map.get(key)!.goals++;
+      }
     });
   });
 
