@@ -545,7 +545,9 @@ export function EditMatchModal({ match, onSave, onClose }: Props) {
 
   const matchYear = parseInt(form.date.slice(0, 4));
   const matchMonth = parseInt(form.date.slice(5, 7));
-  const season = (matchMonth >= 7 ? matchYear : matchYear - 1).toString();
+  const calendarYearLeagues = ['Brasileirao', 'Copa do Brasil', 'CONMEBOL', 'Serie A', 'Argentino'];
+  const isCalendarYear = calendarYearLeagues.some(l => form.competition.toLowerCase().includes(l.toLowerCase()));
+  const season = isCalendarYear ? matchYear.toString() : (matchMonth >= 7 ? matchYear : matchYear - 1).toString();
 
   const handleSave = () => {
     const lineup: Lineup | undefined = (homePlayers.length > 0 || awayPlayers.length > 0)
