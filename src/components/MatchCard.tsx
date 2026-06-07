@@ -15,6 +15,7 @@ interface Props {
   match: Match;
   onUpdate: (id: string, updates: Partial<Match>) => void;
   onDelete: (id: string) => void;
+  allMatches: Match[];
 }
 
 const COMPETITION_COLORS: Record<string, string> = {
