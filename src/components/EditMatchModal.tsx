@@ -255,7 +255,7 @@ function TeamLineupEditor({ teamName, teamApiId, players, onPlayersChange, seaso
         </div>
       ) : (
         <div className="mb-3">
-          <PlayerSearchInput onSelect={p => addPlayer(p, false)} season={season} placeholder="Search player to add..." />
+        <PlayerSearchInput onSelect={p => addPlayer(p, 'starter')} season={season} placeholder="Search player to add..." />
           <p className="text-[10px] text-[#484f58] mt-1">No team ID — searching all leagues</p>
         </div>
       )}
