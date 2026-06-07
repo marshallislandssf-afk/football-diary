@@ -33,12 +33,13 @@ export async function GET(req: NextRequest) {
   }
 
   // Filter by name if query provided
-  if (query.length >= 1) {
-    const q = query.toLowerCase();
+ if (query.length >= 1) {
+    const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const q = normalize(query);
     players = players.filter((p: any) =>
-      p.player.name?.toLowerCase().includes(q) ||
-      p.player.firstname?.toLowerCase().includes(q) ||
-      p.player.lastname?.toLowerCase().includes(q)
+      normalize(p.player.name || '').includes(q) ||
+      normalize(p.player.firstname || '').includes(q) ||
+      normalize(p.player.lastname || '').includes(q)
     );
   }
 
