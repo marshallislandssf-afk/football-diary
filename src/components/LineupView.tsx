@@ -14,7 +14,6 @@ interface Props {
   allMatches?: Match[];
 }
 
-// Mini player profile modal shown when clicking a player in the lineup
 function PlayerQuickProfile({
   profile,
   allMatches,
@@ -45,9 +44,7 @@ function PlayerQuickProfile({
             )}
             <div>
               <h3 className="font-semibold text-[#e6edf3] text-sm">{profile.name}</h3>
-              <div className="flex items-center gap-2 mt-0.5">
-                {profile.positions[0] && <span className="text-xs text-[#8b949e]">{profile.positions[0]}</span>}
-              </div>
+              {profile.positions[0] && <span className="text-xs text-[#8b949e]">{profile.positions[0]}</span>}
             </div>
           </div>
           <button onClick={onClose} className="text-[#8b949e] hover:text-[#e6edf3]"><X size={16} /></button>
@@ -203,6 +200,8 @@ export function LineupView({ match, onUpdate, allMatches = [] }: Props) {
 
   const profiles = useMemo(() => getPlayerProfiles(allMatches), [allMatches]);
 
+  const hasLineup = match.lineup && (match.lineup.home.length > 0 || match.lineup.away.length > 0);
+
   const fetchFromApi = async () => {
     setLoading(true);
     setError(null);
@@ -218,7 +217,7 @@ export function LineupView({ match, onUpdate, allMatches = [] }: Props) {
       );
 
       if (fixtures.length === 0) {
-        setError('No fixture found. Try editing the competition or fetching with different team names.');
+        setError('No fixture found. Try editing the competition or team names.');
         return;
       }
 
@@ -261,7 +260,7 @@ export function LineupView({ match, onUpdate, allMatches = [] }: Props) {
             className="flex items-center gap-2 px-4 py-2 bg-[#238636] hover:bg-[#2ea043] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Fetching lineup…' : 'Fetch Lineup from API-Sports'}
+            {loading ? 'Fetching lineup...' : 'Fetch Lineup from API-Sports'}
           </button>
         )}
         {error && (
@@ -279,7 +278,7 @@ export function LineupView({ match, onUpdate, allMatches = [] }: Props) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs text-[#8b949e]">
-          {match.lineup!.home.filter(p => p.isStarter).length} starters · tap a player to view profile
+          {match.lineup!.home.filter(p => p.isStarter).length} starters - tap a player to view profile
         </span>
         <button onClick={fetchFromApi} disabled={loading} className="flex items-center gap-1 text-xs text-[#8b949e] hover:text-[#58a6ff] transition-colors">
           <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
