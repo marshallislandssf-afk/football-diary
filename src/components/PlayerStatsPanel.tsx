@@ -3,8 +3,9 @@
 import { useMemo, useState } from 'react';
 import { Match, PlayerProfile } from '@/lib/types';
 import { getPlayerProfiles } from '@/lib/storage';
-import { Users, X, Trophy, Calendar } from 'lucide-react';
+import { Users, X, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import clsx from 'clsx';
 
 interface Props {
   matches: Match[];
@@ -18,7 +19,7 @@ function PlayerPhoto({ profile, size = 32 }: { profile: PlayerProfile; size?: nu
         className="rounded-full bg-[#30363d] flex items-center justify-center text-[#8b949e] font-medium text-xs flex-shrink-0"
         style={{ width: size, height: size }}
       >
-        {profile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+        {profile.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
       </div>
     );
   }
@@ -52,7 +53,6 @@ function PlayerProfileModal({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-[#1c2128] border border-[#30363d] rounded-2xl w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#30363d]">
           <div className="flex items-center gap-3">
             <PlayerPhoto profile={profile} size={48} />
@@ -73,23 +73,25 @@ function PlayerProfileModal({
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 p-4 border-b border-[#30363d]">
+        <div className="grid grid-cols-4 gap-3 p-4 border-b border-[#30363d]">
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#3fb950]">{profile.appearances}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Appearances</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Seen</div>
+          </div>
+          <div className="bg-[#161b22] rounded-lg p-3 text-center">
+            <div className="text-xl font-bold text-[#e3b341]">{profile.goals}</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Goals</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-[#58a6ff]">{profile.teams.length}</div>
             <div className="text-[10px] text-[#8b949e] mt-0.5">Teams</div>
           </div>
           <div className="bg-[#161b22] rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-[#e3b341]">{profile.positions.length > 0 ? profile.positions[0] : '—'}</div>
-            <div className="text-[10px] text-[#8b949e] mt-0.5">Position</div>
+            <div className="text-xl font-bold text-[#bc8cff]">{profile.positions.length > 0 ? profile.positions[0] : '-'}</div>
+            <div className="text-[10px] text-[#8b949e] mt-0.5">Pos</div>
           </div>
         </div>
 
-        {/* Teams */}
         {profile.teams.length > 0 && (
           <div className="px-4 py-3 border-b border-[#30363d]">
             <div className="text-[10px] font-medium text-[#484f58] uppercase tracking-wider mb-2">Teams seen playing for</div>
@@ -101,7 +103,6 @@ function PlayerProfileModal({
           </div>
         )}
 
-        {/* Matches */}
         <div className="px-4 py-3">
           <div className="text-[10px] font-medium text-[#484f58] uppercase tracking-wider mb-2">Matches</div>
           <div className="space-y-2">
@@ -111,17 +112,13 @@ function PlayerProfileModal({
                 <div key={m.id} className="flex items-center gap-3 bg-[#161b22] rounded-lg px-3 py-2">
                   <Calendar size={12} className="text-[#484f58] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-[#e6edf3]">
-                      {m.homeTeam.name} vs {m.awayTeam.name}
-                    </div>
+                    <div className="text-xs text-[#e6edf3]">{m.homeTeam.name} vs {m.awayTeam.name}</div>
                     <div className="text-[10px] text-[#8b949e]">
                       {format(new Date(m.date), 'd MMM yyyy')} · {m.competition.name}
                     </div>
                   </div>
                   {m.homeScore !== undefined && (
-                    <span className="text-xs font-mono text-[#3fb950]">
-                      {m.homeScore}–{m.awayScore}
-                    </span>
+                    <span className="text-xs font-mono text-[#3fb950]">{m.homeScore}-{m.awayScore}</span>
                   )}
                 </div>
               ))}
@@ -133,53 +130,180 @@ function PlayerProfileModal({
 }
 
 export function PlayerStatsPanel({ matches }: Props) {
-  const profiles = useMemo(() => getPlayerProfiles(matches).slice(0, 50), [matches]);
+  const allProfiles = useMemo(() => getPlayerProfiles(matches), [matches]);
   const [selectedProfile, setSelectedProfile] = useState<PlayerProfile | null>(null);
+  const [view, setView] = useState<'appearances' | 'goals' | 'gap'>('appearances');
 
-  const max = profiles[0]?.appearances || 1;
+  const appearanceProfiles = useMemo(() => allProfiles.slice(0, 50), [allProfiles]);
+  const maxAppearances = appearanceProfiles[0]?.appearances || 1;
 
-  if (profiles.length === 0) {
+  const goalProfiles = useMemo(() =>
+    allProfiles.filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals).slice(0, 50),
+    [allProfiles]
+  );
+  const maxGoals = goalProfiles[0]?.goals || 1;
+
+  const gapProfiles = useMemo(() =>
+    allProfiles
+      .filter(p => p.firstSeen && p.lastSeen && p.firstSeen !== p.lastSeen)
+      .map(p => ({
+        ...p,
+        gapDays: Math.floor(
+          (new Date(p.lastSeen!).getTime() - new Date(p.firstSeen!).getTime()) / (1000 * 60 * 60 * 24)
+        ),
+      }))
+      .sort((a, b) => b.gapDays - a.gapDays)
+      .slice(0, 50),
+    [allProfiles]
+  );
+  const maxGapDays = gapProfiles[0]?.gapDays || 1;
+
+  if (allProfiles.length === 0) {
     return (
       <div className="text-center py-8 text-[#8b949e] text-sm">
         <Users size={24} className="mx-auto mb-2 opacity-40" />
-        No lineup data yet — fetch lineups from API-Sports to see player stats.
+        No lineup data yet - fetch lineups from API-Sports to see player stats.
       </div>
     );
   }
 
+  const views = [
+    { key: 'appearances' as const, label: 'Most Seen' },
+    { key: 'goals' as const, label: 'Top Scorers' },
+    { key: 'gap' as const, label: 'Longest Gap' },
+  ];
+
   return (
     <>
-      <div className="space-y-2">
-        {profiles.map((profile, i) => (
+      {/* View toggle */}
+      <div className="flex gap-1 mb-5 bg-[#161b22] rounded-lg p-1">
+        {views.map(v => (
           <button
-            key={profile.id || profile.name}
-            onClick={() => setSelectedProfile(profile)}
-            className="w-full flex items-center gap-3 hover:bg-[#21262d] rounded-lg px-2 py-1.5 transition-colors text-left group"
-          >
-            <span className="w-5 text-xs text-[#484f58] text-right font-mono flex-shrink-0">{i + 1}</span>
-            <PlayerPhoto profile={profile} size={28} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
-                <span className="text-xs font-mono text-[#3fb950] ml-2 flex-shrink-0">
-                  {profile.appearances}×
-                </span>
-              </div>
-              <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#3fb950] to-[#2ea043] rounded-full"
-                  style={{ width: `${(profile.appearances / max) * 100}%` }}
-                />
-              </div>
-            </div>
-            {profile.positions[0] && (
-              <span className="text-[10px] text-[#8b949e] w-6 text-center flex-shrink-0">
-                {profile.positions[0]}
-              </span>
+            key={v.key}
+            onClick={() => setView(v.key)}
+            className={clsx(
+              'flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+              view === v.key
+                ? 'bg-[#21262d] text-[#e6edf3] shadow-sm'
+                : 'text-[#8b949e] hover:text-[#e6edf3]'
             )}
+          >
+            {v.label}
           </button>
         ))}
       </div>
+
+      {/* Most Seen */}
+      {view === 'appearances' && (
+        <div className="space-y-2">
+          {appearanceProfiles.map((profile, i) => (
+            <button
+              key={profile.id || profile.name}
+              onClick={() => setSelectedProfile(profile)}
+              className="w-full flex items-center gap-3 hover:bg-[#21262d] rounded-lg px-2 py-1.5 transition-colors text-left group"
+            >
+              <span className="w-5 text-xs text-[#484f58] text-right font-mono flex-shrink-0">{i + 1}</span>
+              <PlayerPhoto profile={profile} size={28} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
+                  <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                    {profile.goals > 0 && (
+                      <span className="text-xs font-mono text-[#e3b341]">G:{profile.goals}</span>
+                    )}
+                    <span className="text-xs font-mono text-[#3fb950]">{profile.appearances}x</span>
+                  </div>
+                </div>
+                <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#3fb950] to-[#2ea043] rounded-full"
+                    style={{ width: `${(profile.appearances / maxAppearances) * 100}%` }}
+                  />
+                </div>
+              </div>
+              {profile.positions[0] && (
+                <span className="text-[10px] text-[#8b949e] w-6 text-center flex-shrink-0">
+                  {profile.positions[0]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Top Scorers */}
+      {view === 'goals' && (
+        <div className="space-y-2">
+          {goalProfiles.length === 0 ? (
+            <p className="text-sm text-[#8b949e] text-center py-8">No goals recorded yet.</p>
+          ) : goalProfiles.map((profile, i) => (
+            <button
+              key={profile.id || profile.name}
+              onClick={() => setSelectedProfile(profile)}
+              className="w-full flex items-center gap-3 hover:bg-[#21262d] rounded-lg px-2 py-1.5 transition-colors text-left group"
+            >
+              <span className="w-5 text-xs text-[#484f58] text-right font-mono flex-shrink-0">{i + 1}</span>
+              <PlayerPhoto profile={profile} size={28} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-sm text-[#e6edf3] truncate group-hover:text-white">{profile.name}</span>
+                  <span className="text-xs font-mono text-[#e3b341] ml-2 flex-shrink-0">
+                    {profile.goals} goal{profile.goals !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#e3b341] to-[#d4a017] rounded-full"
+                    style={{ width: `${(profile.goals / maxGoals) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <span className="text-[10px] text-[#8b949e] flex-shrink-0 w-12 text-right">
+                {profile.appearances}x seen
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Longest Gap */}
+      {view === 'gap' && (
+        <div className="space-y-2">
+          <p className="text-xs text-[#8b949e] mb-3">Players you saw furthest apart in time — minimum 2 appearances.</p>
+          {gapProfiles.length === 0 ? (
+            <p className="text-sm text-[#8b949e] text-center py-8">Need at least 2 appearances per player.</p>
+          ) : gapProfiles.map((profile, i) => (
+            <button
+              key={profile.id || profile.name}
+              onClick={() => setSelectedProfile(profile)}
+              className="w-full flex items-center gap-3 hover:bg-[#21262d] rounded-lg px-2 py-1.5 transition-colors text-left group"
+            >
+              <span className="w-5 text-xs text-[#484f58] text-right font-mono flex-shrink-0">{i + 1}</span>
+              <PlayerPhoto profile={profile} size={28} />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm text-[#e6edf3] truncate group-hover:text-white block">{profile.name}</span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] text-[#8b949e]">{format(new Date(profile.firstSeen!), 'd MMM yyyy')}</span>
+                  <span className="text-[10px] text-[#484f58]">→</span>
+                  <span className="text-[10px] text-[#8b949e]">{format(new Date(profile.lastSeen!), 'd MMM yyyy')}</span>
+                </div>
+                <div className="h-1.5 bg-[#21262d] rounded-full overflow-hidden mt-1">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#bc8cff] to-[#9a6ee7] rounded-full"
+                    style={{ width: `${(profile.gapDays / maxGapDays) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-xs font-mono text-[#bc8cff]">
+                  {Math.floor(profile.gapDays / 365)}y {Math.floor((profile.gapDays % 365) / 30)}m
+                </div>
+                <div className="text-[10px] text-[#484f58]">{profile.gapDays}d</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       {selectedProfile && (
         <PlayerProfileModal
